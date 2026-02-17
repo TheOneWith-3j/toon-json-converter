@@ -1,0 +1,21 @@
+{
+  "name": "JSON ↔ TOON Converter",
+  "short_name": "TOON Converter",
+  "description": "Convert JSON to TOON and vice versa, fully offline, serverless, PWA, Capacitor-ready.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#171717",
+  "theme_color": "#171717",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
