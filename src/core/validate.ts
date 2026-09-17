@@ -15,19 +15,21 @@ export function validateInput(input: string): ValidationResult {
   try {
     JSON.parse(input);
     return { valid: true, type: "json" };
-  } catch (jsonErr: any) {
+  } catch (jsonErr: unknown) {
     // Try TOON
     try {
       decodeToon(input);
       return { valid: true, type: "toon" };
-    } catch (toonErr: any) {
+    } catch (toonErr: unknown) {
       // Extract line/column if available
-      const match = toonErr?.message?.match(/line (\d+), column (\d+)/);
+      const toonMessage = toonErr instanceof Error ? toonErr.message : "";
+      const jsonMessage = jsonErr instanceof Error ? jsonErr.message : "";
+      const match = toonMessage.match(/line (\d+), column (\d+)/);
       return {
         valid: false,
         type: "unknown",
         error: {
-          message: toonErr?.message || jsonErr?.message || "Unknown error",
+          message: toonMessage || jsonMessage || "Unknown error",
           line: match ? parseInt(match[1], 10) : undefined,
           column: match ? parseInt(match[2], 10) : undefined,
         },
