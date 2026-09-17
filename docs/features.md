@@ -12,8 +12,8 @@
 
 ## Editor
 
-- CodeMirror 6, syntax highlighting for JSON/TOON
-- Error highlighting, jump-to-error
+- CodeMirror 6, JSON syntax highlighting, and TOON editing
+- Error-line highlighting and keyboard conversion shortcut
 
 ## Presets
 
@@ -21,11 +21,11 @@
 
 ## History & Projects
 
-- IndexedDB storage, export/import, zip download
+- IndexedDB storage, project export/import, and batch ZIP download
 
 ## Batch Conversion
 
-- Drag & drop files/folders, zip output
+- Multi-file selection and ZIP output
 
 ## Transform Rules
 
@@ -33,7 +33,7 @@
 
 ## Metrics
 
-- Local-first, privacy-aware, exportable
+- Local-first, privacy-aware, locally persisted conversion metrics
 
 ## Firebase Sync
 

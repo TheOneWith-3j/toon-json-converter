@@ -1,39 +1,73 @@
-import ConverterPane from '../components/ConverterPane';
+"use client";
+
+import { useEffect, useState } from "react";
+import ConverterPane from "../components/ConverterPane";
 
 export default function HomePage() {
+  const [dark, setDark] = useState(false);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      const savedTheme = localStorage.getItem("toon-theme") === "dark";
+      setDark(savedTheme);
+      document.documentElement.dataset.theme = savedTheme ? "dark" : "light";
+    });
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+  }, [dark]);
+
+  function toggleTheme() {
+    const next = !dark;
+    setDark(next);
+    localStorage.setItem("toon-theme", next ? "dark" : "light");
+    document.documentElement.dataset.theme = next ? "dark" : "light";
+  }
+
   return (
-    <main className="min-h-screen bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100">
-      <header className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">JSON ↔ TOON Converter</h1>
-        <span className="text-xs font-semibold text-neutral-500">Offline Ready • Serverless • PWA</span>
+    <main className="app-shell">
+      <header className="app-header">
+        <div className="brand-lockup">
+          <div className="brand-mark" aria-hidden="true">
+            <span />
+          </div>
+          <div>
+            <p className="brand-name">TOONWORKS</p>
+            <p className="brand-subtitle">structured data studio</p>
+          </div>
+        </div>
+        <div className="header-actions">
+          <span className="header-pill">
+            <span className="live-dot" /> LOCAL-FIRST
+          </span>
+          <button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label="Toggle color theme"
+          >
+            <span aria-hidden="true">{dark ? "☼" : "◐"}</span>
+            {dark ? "Light" : "Dark"}
+          </button>
+        </div>
       </header>
+      <div className="page-intro">
+        <div>
+          <p className="eyebrow">FORMAT LAB / 01</p>
+          <h1>Shape data with intent.</h1>
+          <p className="intro-copy">
+            A fast, private workbench for moving between JSON and TOON without
+            losing the details that matter.
+          </p>
+        </div>
+        <div className="intro-stamp">
+          <strong>JSON</strong>
+          <span>↔</span>
+          <strong>TOON</strong>
+          <small>CANONICAL / VERIFIED</small>
+        </div>
+      </div>
       <ConverterPane />
     </main>
-  );
-}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
   );
 }
