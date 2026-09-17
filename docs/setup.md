@@ -2,13 +2,13 @@
 
 ## Local Development
 
-- `pnpm install`
-- `pnpm dev`
+- `npm install`
+- `npm run dev`
 
 ## Static Export
 
-- `pnpm build`
-- `pnpm exec next export`
+- `npm run build`
+- `npm run build` writes the static site to `out/` via `next.config.ts`.
 
 ## Deployment
 

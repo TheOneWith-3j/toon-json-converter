@@ -40,15 +40,14 @@ A feature-rich, production-quality, fully serverless converter for JSON ↔ TOON
 ## Local Development
 
 ```sh
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
 
 ## Static Export & Deployment
 
 ```sh
-pnpm build
-pnpm exec next export
+npm run build
 ```
 
 - Deploy `out/` to GitHub Pages, Cloudflare Pages, or Firebase Hosting.
