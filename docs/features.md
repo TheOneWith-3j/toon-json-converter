@@ -40,7 +40,7 @@
 
 ## Firebase Sync
 
-- Optional, feature-flagged, Google Auth + Firestore project sync
+- Optional, feature-flagged, Google Auth + Firestore project sync with local/cloud merge handling
 
 ## PWA & Capacitor
 

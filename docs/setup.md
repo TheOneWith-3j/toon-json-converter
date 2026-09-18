@@ -37,6 +37,8 @@ Add these public web app values when cloud project sync should be enabled:
 - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
 - `NEXT_PUBLIC_FIREBASE_APP_ID`
 
+Firestore rules for the project sync collection are documented in [firebase-rules.md](firebase-rules.md).
+
 ## Capacitor
 
 - Use `capacitor.config.ts`

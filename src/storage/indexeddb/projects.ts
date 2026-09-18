@@ -5,7 +5,7 @@ const DB_NAME = "toon-json-converter";
 const STORE_NAME = "projects";
 
 export interface Project {
-  id?: number;
+  id?: number | string;
   name: string;
   input: string;
   output: string;
@@ -38,7 +38,7 @@ export async function getProjects(): Promise<Project[]> {
   return db.getAll(STORE_NAME);
 }
 
-export async function deleteProject(id: number) {
+export async function deleteProject(id: IDBValidKey) {
   const db = await getDb();
   await db.delete(STORE_NAME, id);
 }
