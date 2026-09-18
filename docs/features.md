@@ -10,6 +10,7 @@
 - Uses `encode()` and `decode()` from the official library
 - Canonical output, round-trip determinism
 - Quick actions for format/canonicalize, swap, copy, clear, download, and repair
+- Side-by-side comparison with size delta and diff summary
 
 ## Editor
 

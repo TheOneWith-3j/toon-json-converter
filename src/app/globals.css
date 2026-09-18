@@ -246,10 +246,10 @@ button {
   order: 2;
 }
 .secondary-tools {
-  order: 4;
+  order: 5;
 }
 .workspace-shell > .grid:not(.editor-grid):not(.secondary-tools) {
-  order: 5;
+  order: 6;
 }
 .workspace-toolbar,
 .workspace-panel {
@@ -263,7 +263,7 @@ button {
   padding: 10px;
 }
 .drop-zone {
-  order: 3;
+  order: 4;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -389,6 +389,26 @@ button {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
+.comparison-bar {
+  order: 3;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.diff-summary {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.diff-summary span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: var(--muted);
+  background: var(--surface-solid);
+  font-size: 10px;
+  font-weight: 760;
+}
 .metric-card {
   min-width: 0;
   padding: 10px;
@@ -431,7 +451,7 @@ button {
   font-size: 13px;
 }
 .repair-banner {
-  order: 2;
+  order: 3;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -550,6 +570,9 @@ button {
     align-items: flex-start;
   }
   .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .comparison-bar {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

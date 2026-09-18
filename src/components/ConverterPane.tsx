@@ -187,9 +187,10 @@ export default function ConverterPane() {
   function formatInput() {
     try {
       const type = detectInputType(input);
-      const formatted = type === "json"
-        ? JSON.stringify(JSON.parse(input), null, 2)
-        : encodeToon(decodeToon(input));
+      const formatted =
+        type === "json"
+          ? JSON.stringify(JSON.parse(input), null, 2)
+          : encodeToon(decodeToon(input));
       setInput(formatted);
       inspect(formatted);
       setStatus(type === "json" ? "JSON formatted" : "TOON canonicalized");
@@ -425,6 +426,15 @@ export default function ConverterPane() {
   }
 
   const diff = output ? getLineDiff(input, output) : [];
+  const addedLines = diff
+    .filter((part) => part.added)
+    .reduce((total, part) => total + countLines(part.value), 0);
+  const removedLines = diff
+    .filter((part) => part.removed)
+    .reduce((total, part) => total + countLines(part.value), 0);
+  const sizeDelta = input.length === 0
+    ? 0
+    : Math.round(((output.length - input.length) / input.length) * 100);
 
   return (
     <section
@@ -709,6 +719,15 @@ export default function ConverterPane() {
         />
       </div>
 
+      {output && (
+        <div className="comparison-bar">
+          <Metric label="Input" value={`${input.length}b`} />
+          <Metric label="Output" value={`${output.length}b`} />
+          <Metric label="Size delta" value={`${sizeDelta > 0 ? "+" : ""}${sizeDelta}%`} />
+          <Metric label="Diff" value={`+${addedLines} / -${removedLines}`} />
+        </div>
+      )}
+
       {validation && !validation.valid && detected === "unknown" && (
         <div className="repair-banner">
           <div>
@@ -793,6 +812,10 @@ export default function ConverterPane() {
       )}
       {diff.length > 0 && (
         <InfoPanel title="Line diff">
+          <div className="diff-summary">
+            <span>Added {addedLines}</span>
+            <span>Removed {removedLines}</span>
+          </div>
           <pre className="max-h-56 overflow-auto text-xs">
             {diff.map((part, index) => (
               <span
@@ -813,6 +836,10 @@ export default function ConverterPane() {
       )}
     </section>
   );
+}
+
+function countLines(value: string) {
+  return value.trim() ? value.trimEnd().split(/\r?\n/).length : 0;
 }
 
 function EditorPanel({
