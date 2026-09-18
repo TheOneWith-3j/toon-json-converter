@@ -33,6 +33,7 @@ import {
   subscribeToCloudUser,
   syncProjectToCloud,
 } from "../firebase/sync";
+import { mergeProjectsByUpdatedAt } from "../firebase/merge";
 import CodeMirrorEditor from "./CodeMirrorEditor";
 
 type Direction = "auto" | "json-toon" | "toon-json";
@@ -244,7 +245,7 @@ export default function ConverterPane() {
     setStatus("Project saved locally");
   }
 
-  async function removeLocalProject(projectId: number | undefined) {
+  async function removeLocalProject(projectId: IDBValidKey | undefined) {
     if (projectId === undefined) return;
     const confirmed = window.confirm("Delete this local project?");
     if (!confirmed) return;
@@ -308,6 +309,21 @@ export default function ConverterPane() {
       setStatus("Project synced to Firebase");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Cloud sync failed");
+    }
+  }
+
+  async function pullCloudProjects() {
+    try {
+      const cloud = await getCloudProjects();
+      const merged = mergeProjectsByUpdatedAt(projects, cloud);
+      await Promise.all(merged.projects.map((project) => saveProject(project)));
+      setProjects(await getProjects());
+      setCloudProjects(cloud);
+      setStatus(
+        `Cloud merged: ${merged.added} added, ${merged.updated} updated, ${merged.conflicts} conflict${merged.conflicts === 1 ? "" : "s"}`,
+      );
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Cloud pull failed");
     }
   }
 
@@ -440,7 +456,9 @@ export default function ConverterPane() {
         });
       }
     }
-    const converted = results.filter((result) => result.status === "converted").length;
+    const converted = results.filter(
+      (result) => result.status === "converted",
+    ).length;
     if (converted) {
       const blob = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(blob);
@@ -634,6 +652,13 @@ export default function ConverterPane() {
             >
               Sync
             </button>
+            <button
+              onClick={pullCloudProjects}
+              disabled={!cloudUser}
+              className="rounded border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-neutral-700"
+            >
+              Pull cloud
+            </button>
           </>
         )}
         <span
@@ -664,11 +689,17 @@ export default function ConverterPane() {
           <div className="batch-summary">
             <Metric
               label="Converted"
-              value={batchResults.filter((result) => result.status === "converted").length}
+              value={
+                batchResults.filter((result) => result.status === "converted")
+                  .length
+              }
             />
             <Metric
               label="Failed"
-              value={batchResults.filter((result) => result.status === "failed").length}
+              value={
+                batchResults.filter((result) => result.status === "failed")
+                  .length
+              }
             />
             <Metric label="Files" value={batchResults.length} />
             <Metric
@@ -678,12 +709,13 @@ export default function ConverterPane() {
           </div>
           <div className="batch-list">
             {batchResults.map((result) => (
-              <div className="batch-row" key={`${result.fileName}-${result.outputName ?? result.error}`}>
+              <div
+                className="batch-row"
+                key={`${result.fileName}-${result.outputName ?? result.error}`}
+              >
                 <span className={result.status}>{result.status}</span>
                 <strong>{result.fileName}</strong>
-                <small>
-                  {result.outputName ?? result.error}
-                </small>
+                <small>{result.outputName ?? result.error}</small>
               </div>
             ))}
           </div>
@@ -906,6 +938,9 @@ export default function ConverterPane() {
         {syncAvailable && (
           <InfoPanel title="Cloud sync">
             <p className="text-sm">{cloudUser ?? "Not connected"}</p>
+            <p className="text-xs text-neutral-500">
+              Newer `updatedAt` wins when local and cloud projects conflict.
+            </p>
             {cloudProjects.slice(0, 3).map((project) => (
               <button
                 key={`${project.id}-${project.updatedAt}`}

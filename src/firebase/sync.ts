@@ -32,7 +32,7 @@ export async function syncProjectToCloud(project: Project) {
   const firebase = setupFirebase();
   if (!firebase?.auth.currentUser) throw new Error("Sign in before syncing");
   const userId = firebase.auth.currentUser.uid;
-  const projectId = project.id?.toString() ?? crypto.randomUUID();
+  const projectId = getCloudProjectId(project);
   await setDoc(doc(firebase.db, "users", userId, PROJECTS_COLLECTION, projectId), {
     ...project,
     id: projectId,
@@ -47,5 +47,10 @@ export async function getCloudProjects(): Promise<Project[]> {
   const snapshot = await getDocs(
     query(collection(firebase.db, "users", userId, PROJECTS_COLLECTION), orderBy("updatedAt", "desc")),
   );
-  return snapshot.docs.map((item) => item.data() as Project);
+  return snapshot.docs.map((item) => ({ ...(item.data() as Project), id: item.id }));
+}
+
+export function getCloudProjectId(project: Project) {
+  if (project.id !== undefined) return encodeURIComponent(String(project.id));
+  return encodeURIComponent(project.name.trim().toLowerCase().replace(/\s+/g, "-") || crypto.randomUUID());
 }
