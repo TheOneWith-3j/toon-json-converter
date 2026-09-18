@@ -12,6 +12,7 @@ import {
   type TransformRule,
 } from "../core/transforms/transformEngine";
 import {
+  getDefaultMetrics,
   loadMetrics,
   recordConversion,
   saveMetrics,
@@ -54,9 +55,11 @@ export default function ConverterPane() {
   const [schema, setSchema] = useState<SchemaNode | null>(null);
   const [roundTrip, setRoundTrip] = useState<boolean | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [projectName, setProjectName] = useState("Untitled conversion");
+  const [projectSearch, setProjectSearch] = useState("");
   const [status, setStatus] = useState("");
   const [rules, setRules] = useState<TransformRule[]>([]);
-  const [metrics, setMetrics] = useState<Metrics | null>(() => loadMetrics());
+  const [metrics, setMetrics] = useState<Metrics>(() => getDefaultMetrics());
   const [online, setOnline] = useState(true);
   const [mobilePane, setMobilePane] = useState<MobilePane>("input");
   const [cloudUser, setCloudUser] = useState<string | null>(null);
@@ -70,6 +73,7 @@ export default function ConverterPane() {
     getProjects()
       .then(setProjects)
       .catch(() => undefined);
+    queueMicrotask(() => setMetrics(loadMetrics()));
     const updateOnline = () => setOnline(navigator.onLine);
     window.addEventListener("online", updateOnline);
     window.addEventListener("offline", updateOnline);
@@ -125,34 +129,30 @@ export default function ConverterPane() {
           JSON.stringify(decodeToon(encodeToon(json))) === JSON.stringify(json),
         );
       }
-      if (metrics) {
-        const nextMetrics = recordConversion(
-          metrics,
-          value.length,
-          outputSize,
-          actualDirection,
-          true,
-        );
-        setMetrics(nextMetrics);
-        saveMetrics(nextMetrics);
-      }
+      const nextMetrics = recordConversion(
+        metrics,
+        value.length,
+        outputSize,
+        actualDirection,
+        true,
+      );
+      setMetrics(nextMetrics);
+      saveMetrics(nextMetrics);
       setStatus("Converted successfully");
     } catch (error) {
       setOutput("");
       setOutputType("json");
       setSchema(null);
       setRoundTrip(null);
-      if (metrics) {
-        const nextMetrics = recordConversion(
-          metrics,
-          value.length,
-          0,
-          actualDirection,
-          false,
-        );
-        setMetrics(nextMetrics);
-        saveMetrics(nextMetrics);
-      }
+      const nextMetrics = recordConversion(
+        metrics,
+        value.length,
+        0,
+        actualDirection,
+        false,
+      );
+      setMetrics(nextMetrics);
+      saveMetrics(nextMetrics);
       setStatus(error instanceof Error ? error.message : "Conversion failed");
     }
   }
@@ -222,8 +222,7 @@ export default function ConverterPane() {
   }
 
   async function saveCurrentProject() {
-    const name = window.prompt("Project name", "Untitled conversion");
-    if (!name) return;
+    const name = projectName.trim() || "Untitled conversion";
     await saveProject({
       name,
       input,
@@ -236,6 +235,8 @@ export default function ConverterPane() {
 
   async function removeLocalProject(projectId: number | undefined) {
     if (projectId === undefined) return;
+    const confirmed = window.confirm("Delete this local project?");
+    if (!confirmed) return;
     await deleteProject(projectId);
     setProjects(await getProjects());
     setStatus("Project deleted");
@@ -244,6 +245,7 @@ export default function ConverterPane() {
   function loadProject(project: Project) {
     setInput(project.input);
     setOutput(project.output);
+    setProjectName(project.name);
     inspect(project.input);
     setStatus(`${project.name} loaded`);
   }
@@ -316,16 +318,22 @@ export default function ConverterPane() {
     }
   }
 
-  function exportProject() {
+  function exportProject(
+    projectsToExport: Project[] = [
+      {
+        name: projectName.trim() || "Exported project",
+        input,
+        output,
+        updatedAt: new Date().toISOString(),
+      },
+    ],
+  ) {
     const blob = new Blob(
       [
         JSON.stringify(
-          {
-            name: "Exported project",
-            input,
-            output,
-            updatedAt: new Date().toISOString(),
-          },
+          projectsToExport.length === 1
+            ? projectsToExport[0]
+            : { projects: projectsToExport },
           null,
           2,
         ),
@@ -335,7 +343,10 @@ export default function ConverterPane() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "toon-project.json";
+    link.download =
+      projectsToExport.length === 1
+        ? "toon-project.json"
+        : "toon-projects.json";
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -345,12 +356,33 @@ export default function ConverterPane() {
     if (!file) return;
     file
       .text()
-      .then((text) => {
-        const project = JSON.parse(text) as Project;
-        setInput(project.input);
-        setOutput(project.output);
-        inspect(project.input);
-        setStatus("Project imported");
+      .then(async (text) => {
+        const payload = JSON.parse(text) as Project | { projects?: Project[] };
+        const importedProjects = Array.isArray(
+          (payload as { projects?: Project[] }).projects,
+        )
+          ? (payload as { projects: Project[] }).projects
+          : [payload as Project];
+        const normalizedProjects = importedProjects
+          .filter(
+            (project) =>
+              typeof project.input === "string" &&
+              typeof project.output === "string",
+          )
+          .map((project) => ({
+            name: project.name || "Imported conversion",
+            input: project.input,
+            output: project.output,
+            updatedAt: project.updatedAt || new Date().toISOString(),
+          }));
+        await Promise.all(
+          normalizedProjects.map((project) => saveProject(project)),
+        );
+        setProjects(await getProjects());
+        if (normalizedProjects[0]) loadProject(normalizedProjects[0]);
+        setStatus(
+          `${normalizedProjects.length} project${normalizedProjects.length === 1 ? "" : "s"} imported`,
+        );
       })
       .catch(() => setStatus("Invalid project file"));
     event.target.value = "";
@@ -402,7 +434,6 @@ export default function ConverterPane() {
   }
 
   function exportMetrics() {
-    if (!metrics) return;
     const blob = new Blob([JSON.stringify(metrics, null, 2)], {
       type: "application/json",
     });
@@ -432,9 +463,13 @@ export default function ConverterPane() {
   const removedLines = diff
     .filter((part) => part.removed)
     .reduce((total, part) => total + countLines(part.value), 0);
-  const sizeDelta = input.length === 0
-    ? 0
-    : Math.round(((output.length - input.length) / input.length) * 100);
+  const sizeDelta =
+    input.length === 0
+      ? 0
+      : Math.round(((output.length - input.length) / input.length) * 100);
+  const filteredProjects = projects.filter((project) =>
+    project.name.toLowerCase().includes(projectSearch.toLowerCase()),
+  );
 
   return (
     <section
@@ -546,10 +581,17 @@ export default function ConverterPane() {
           />
         </label>
         <button
-          onClick={exportProject}
+          onClick={() => exportProject()}
           className="rounded border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700"
         >
           Export
+        </button>
+        <button
+          onClick={() => exportProject(projects)}
+          disabled={projects.length === 0}
+          className="rounded border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-neutral-700"
+        >
+          Export all
         </button>
         {syncAvailable && (
           <>
@@ -723,7 +765,10 @@ export default function ConverterPane() {
         <div className="comparison-bar">
           <Metric label="Input" value={`${input.length}b`} />
           <Metric label="Output" value={`${output.length}b`} />
-          <Metric label="Size delta" value={`${sizeDelta > 0 ? "+" : ""}${sizeDelta}%`} />
+          <Metric
+            label="Size delta"
+            value={`${sizeDelta > 0 ? "+" : ""}${sizeDelta}%`}
+          />
           <Metric label="Diff" value={`+${addedLines} / -${removedLines}`} />
         </div>
       )}
@@ -761,10 +806,26 @@ export default function ConverterPane() {
           </p>
         </InfoPanel>
         <InfoPanel title="Local projects">
+          <div className="project-controls">
+            <input
+              value={projectName}
+              onChange={(event) => setProjectName(event.target.value)}
+              placeholder="Project name"
+            />
+            <input
+              value={projectSearch}
+              onChange={(event) => setProjectSearch(event.target.value)}
+              placeholder="Search projects"
+            />
+          </div>
           {projects.length === 0 ? (
             <p className="text-xs text-neutral-500">No saved projects</p>
+          ) : filteredProjects.length === 0 ? (
+            <p className="text-xs text-neutral-500">
+              No projects match this search
+            </p>
           ) : (
-            projects
+            filteredProjects
               .slice(-6)
               .reverse()
               .map((project) => (

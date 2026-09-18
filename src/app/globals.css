@@ -441,6 +441,16 @@ button {
 .project-row:first-of-type {
   border-top: 0;
 }
+.project-controls {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.project-controls input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 12px;
+}
 .editor-card .cm-editor {
   min-height: 290px;
   border: 0;

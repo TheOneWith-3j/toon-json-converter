@@ -23,7 +23,7 @@
 
 ## History & Projects
 
-- IndexedDB storage, project export/import, and batch ZIP download
+- IndexedDB storage, named projects, search, delete, export/import, and batch ZIP download
 - Optional Firebase project sync when public Firebase config is provided
 
 ## Batch Conversion
