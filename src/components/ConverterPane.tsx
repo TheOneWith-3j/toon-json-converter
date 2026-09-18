@@ -47,6 +47,7 @@ const presets: Record<string, string> = {
 export default function ConverterPane() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
+  const [outputType, setOutputType] = useState<"json" | "toon">("json");
   const [detected, setDetected] = useState<DetectedType>("unknown");
   const [direction, setDirection] = useState<Direction>("auto");
   const [validation, setValidation] = useState<ValidationResult | null>(null);
@@ -110,6 +111,7 @@ export default function ConverterPane() {
         const toon = encodeToon(json);
         outputSize = toon.length;
         setOutput(toon);
+        setOutputType("toon");
         setSchema(inferSchema(json));
         setRoundTrip(JSON.stringify(decodeToon(toon)) === JSON.stringify(json));
       } else {
@@ -117,6 +119,7 @@ export default function ConverterPane() {
         const jsonText = JSON.stringify(json, null, 2);
         outputSize = jsonText.length;
         setOutput(jsonText);
+        setOutputType("json");
         setSchema(inferSchema(json));
         setRoundTrip(
           JSON.stringify(decodeToon(encodeToon(json))) === JSON.stringify(json),
@@ -136,6 +139,7 @@ export default function ConverterPane() {
       setStatus("Converted successfully");
     } catch (error) {
       setOutput("");
+      setOutputType("json");
       setSchema(null);
       setRoundTrip(null);
       if (metrics) {
@@ -157,6 +161,47 @@ export default function ConverterPane() {
     setInput(value);
     inspect(value);
     if (direction === "auto") convert(value, "auto");
+  }
+
+  function clearWorkspace() {
+    setInput("");
+    setOutput("");
+    setOutputType("json");
+    setDetected("unknown");
+    setValidation(null);
+    setSchema(null);
+    setRoundTrip(null);
+    setStatus("Workspace cleared");
+  }
+
+  function swapEditors() {
+    if (!output) return;
+    setInput(output);
+    setOutput(input);
+    setDetected(outputType);
+    setOutputType(detected === "json" ? "json" : "toon");
+    setValidation(validateInput(output));
+    setStatus("Editors swapped");
+  }
+
+  function formatInput() {
+    try {
+      const type = detectInputType(input);
+      const formatted = type === "json"
+        ? JSON.stringify(JSON.parse(input), null, 2)
+        : encodeToon(decodeToon(input));
+      setInput(formatted);
+      inspect(formatted);
+      setStatus(type === "json" ? "JSON formatted" : "TOON canonicalized");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Format failed");
+    }
+  }
+
+  async function copyOutput() {
+    if (!output) return;
+    await navigator.clipboard.writeText(output);
+    setStatus("Output copied");
   }
 
   function repairInput() {
@@ -431,6 +476,34 @@ export default function ConverterPane() {
           Convert
         </button>
         <button
+          onClick={formatInput}
+          disabled={!input}
+          className="rounded border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-neutral-700"
+        >
+          Format
+        </button>
+        <button
+          onClick={swapEditors}
+          disabled={!output}
+          className="rounded border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-neutral-700"
+        >
+          Swap
+        </button>
+        <button
+          onClick={copyOutput}
+          disabled={!output}
+          className="rounded border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-neutral-700"
+        >
+          Copy
+        </button>
+        <button
+          onClick={clearWorkspace}
+          disabled={!input && !output}
+          className="rounded border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-neutral-700"
+        >
+          Clear
+        </button>
+        <button
           onClick={saveCurrentProject}
           className="rounded border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700"
         >
@@ -546,7 +619,11 @@ export default function ConverterPane() {
               </select>
             ) : (
               <input
-                placeholder={ruleKind === "filter" ? "Allowed values, comma-separated" : "New key or prefix"}
+                placeholder={
+                  ruleKind === "filter"
+                    ? "Allowed values, comma-separated"
+                    : "New key or prefix"
+                }
                 value={ruleValue}
                 onChange={(event) => setRuleValue(event.target.value)}
                 className="min-w-40 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
@@ -573,12 +650,20 @@ export default function ConverterPane() {
         </InfoPanel>
         <InfoPanel title="Metrics">
           <div className="metric-grid">
-            <Metric label="Conversions" value={metrics?.totalConversions ?? 0} />
+            <Metric
+              label="Conversions"
+              value={metrics?.totalConversions ?? 0}
+            />
             <Metric label="Success" value={metrics?.successCount ?? 0} />
             <Metric label="Failures" value={metrics?.failureCount ?? 0} />
-            <Metric label="Avg out" value={`${Math.round(metrics?.avgOutputSize ?? 0)}b`} />
+            <Metric
+              label="Avg out"
+              value={`${Math.round(metrics?.avgOutputSize ?? 0)}b`}
+            />
           </div>
-          <p className="mt-3 text-xs text-neutral-500">Stored locally in this browser</p>
+          <p className="mt-3 text-xs text-neutral-500">
+            Stored locally in this browser
+          </p>
           <button
             onClick={exportMetrics}
             className="mt-3 rounded border px-2 py-1 text-xs"
@@ -611,14 +696,14 @@ export default function ConverterPane() {
           title="Input"
           value={input}
           onChange={handleInputChange}
-          language={detected === "json" ? "json" : "toon"}
+          language={detected === "toon" ? "toon" : "json"}
           line={validation?.error?.line}
           mobileHidden={mobilePane !== "input"}
         />
         <EditorPanel
           title="Output"
           value={output}
-          language={detected === "json" ? "toon" : "json"}
+          language={outputType}
           readOnly
           mobileHidden={mobilePane !== "output"}
         />
