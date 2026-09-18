@@ -346,6 +346,9 @@ button {
 .editor-grid {
   align-items: stretch;
 }
+.mobile-tabs {
+  display: none;
+}
 .editor-card {
   min-width: 0;
   overflow: hidden;
@@ -475,5 +478,38 @@ button {
   }
   .workspace-shell {
     padding-bottom: 36px;
+  }
+  .editor-grid {
+    display: block;
+  }
+  .mobile-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 10px;
+    padding: 5px;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+  .mobile-tabs button {
+    border: 0;
+    border-radius: 9px;
+    padding: 10px;
+    color: var(--muted);
+    background: transparent;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .mobile-tabs button.active {
+    color: var(--background);
+    background: var(--foreground);
+  }
+  .editor-card.mobile-hidden {
+    display: none;
+  }
+  .drop-zone {
+    align-items: flex-start;
   }
 }
