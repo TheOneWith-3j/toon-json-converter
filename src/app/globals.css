@@ -344,7 +344,39 @@ button {
   color: var(--muted);
 }
 .editor-grid {
+  display: flex;
   align-items: stretch;
+}
+.editor-card.is-input {
+  flex: 0 0 calc(var(--split, 50%) - 6px);
+}
+.editor-card.is-output {
+  flex: 1 1 auto;
+}
+.split-handle {
+  flex: 0 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: col-resize;
+  border-radius: 6px;
+  touch-action: none;
+}
+.split-handle::before {
+  content: "";
+  width: 4px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--line);
+  transition: background 150ms ease;
+}
+.split-handle:hover::before,
+.split-handle:focus-visible::before {
+  background: var(--accent-strong);
+}
+.split-handle:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
 }
 .mobile-tabs {
   display: none;
@@ -598,6 +630,9 @@ button {
   }
   .editor-grid {
     display: block;
+  }
+  .split-handle {
+    display: none;
   }
   .mobile-tabs {
     display: grid;

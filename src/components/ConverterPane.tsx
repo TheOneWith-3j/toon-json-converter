@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import JSZip from "jszip";
 import { detectInputType, type DetectedType } from "../core/detect";
 import { validateInput, type ValidationResult } from "../core/validate";
@@ -248,13 +248,19 @@ export default function ConverterPane() {
   const [ruleValue, setRuleValue] = useState("");
   const [batchResults, setBatchResults] = useState<BatchResult[]>([]);
   const [isDragActive, setIsDragActive] = useState(false);
+  const [splitRatio, setSplitRatio] = useState(50);
+  const editorGridRef = useRef<HTMLDivElement>(null);
   const syncAvailable = isFirebaseSyncAvailable();
 
   useEffect(() => {
     getProjects()
       .then(setProjects)
       .catch(() => undefined);
-    queueMicrotask(() => setMetrics(loadMetrics()));
+    queueMicrotask(() => {
+      setMetrics(loadMetrics());
+      const savedSplit = Number(localStorage.getItem("toon-split-ratio"));
+      if (savedSplit >= 20 && savedSplit <= 80) setSplitRatio(savedSplit);
+    });
     const updateOnline = () => setOnline(navigator.onLine);
     window.addEventListener("online", updateOnline);
     window.addEventListener("offline", updateOnline);
@@ -353,6 +359,33 @@ export default function ConverterPane() {
     setSchema(null);
     setRoundTrip(null);
     setStatus("Workspace cleared");
+  }
+
+  function clampSplitRatio(ratio: number) {
+    return Math.min(75, Math.max(25, ratio));
+  }
+
+  function updateSplitRatio(ratio: number) {
+    const clamped = clampSplitRatio(ratio);
+    setSplitRatio(clamped);
+    localStorage.setItem("toon-split-ratio", String(clamped));
+  }
+
+  function handleSplitDragStart(event: React.PointerEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const container = editorGridRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    function handleMove(moveEvent: PointerEvent) {
+      const ratio = ((moveEvent.clientX - rect.left) / rect.width) * 100;
+      updateSplitRatio(ratio);
+    }
+    function handleUp() {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+    }
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
   }
 
   function swapEditors() {
@@ -1026,7 +1059,11 @@ export default function ConverterPane() {
         </InfoPanel>
       </div>
 
-      <div className="editor-grid grid gap-4 lg:grid-cols-2">
+      <div
+        className="editor-grid"
+        ref={editorGridRef}
+        style={{ "--split": `${splitRatio}%` } as React.CSSProperties}
+      >
         <div className="mobile-tabs" role="tablist" aria-label="Editor panes">
           <button
             className={mobilePane === "input" ? "active" : ""}
@@ -1053,6 +1090,19 @@ export default function ConverterPane() {
           line={validation?.error?.line}
           mobileHidden={mobilePane !== "input"}
           tone="input"
+        />
+        <div
+          className="split-handle"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize input and output panels"
+          tabIndex={0}
+          onPointerDown={handleSplitDragStart}
+          onDoubleClick={() => updateSplitRatio(50)}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowLeft") updateSplitRatio(splitRatio - 2);
+            if (event.key === "ArrowRight") updateSplitRatio(splitRatio + 2);
+          }}
         />
         <EditorPanel
           title="Output"
