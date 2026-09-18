@@ -52,6 +52,12 @@ Open `http://localhost:3000`.
 npm run validate
 ```
 
+The first local E2E run may need browser installation:
+
+```sh
+npx playwright install chromium
+```
+
 ## Static Export & Deployment
 
 ```sh

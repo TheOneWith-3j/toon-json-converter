@@ -10,7 +10,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "validate": "npm run lint && npm run typecheck && npm test -- --run && npm run build"
+    "e2e": "playwright test",
+    "validate": "npm run lint && npm run typecheck && npm test -- --run && npm run build && npm run e2e"
   },
   "dependencies": {
     "@capacitor/app": "^8.0.1",
@@ -44,6 +45,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.2",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

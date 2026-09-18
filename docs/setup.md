@@ -4,12 +4,17 @@
 
 - `npm install`
 - `npm run dev`
+- `npx playwright install chromium` before the first local E2E run
 
 ## Static Export
 
 - `npm run build`
 - `npm run build` writes the static site to `out/` via `next.config.ts`.
 - `npm run preview` serves the exported site locally.
+
+## Validation
+
+- `npm run validate` runs lint, typecheck, unit tests, static build, and Playwright release smoke tests.
 
 ## Deployment
 

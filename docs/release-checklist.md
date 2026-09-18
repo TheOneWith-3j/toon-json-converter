@@ -8,6 +8,12 @@ Run the complete validation gate before merging a release PR:
 npm run validate
 ```
 
+Install the browser binary once before local E2E runs:
+
+```sh
+npx playwright install chromium
+```
+
 Preview the static export locally:
 
 ```sh
@@ -25,6 +31,8 @@ Check these browser flows before publishing:
 - Toggle light and dark mode.
 - Test the mobile Input/Output tabs.
 - Confirm `/service-worker.js` returns HTTP 200 after a production build.
+
+The Playwright release smoke suite automates the primary conversion, project, batch report, theme, and mobile tab checks.
 
 ## GitHub Pages
 
