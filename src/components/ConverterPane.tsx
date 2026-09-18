@@ -22,9 +22,18 @@ import {
   saveProject,
   type Project,
 } from "../storage/indexeddb/projects";
+import {
+  getCloudProjects,
+  isFirebaseSyncAvailable,
+  signInToCloud,
+  signOutFromCloud,
+  subscribeToCloudUser,
+  syncProjectToCloud,
+} from "../firebase/sync";
 import CodeMirrorEditor from "./CodeMirrorEditor";
 
 type Direction = "auto" | "json-toon" | "toon-json";
+type MobilePane = "input" | "output";
 
 const presets: Record<string, string> = {
   "User record": '{"id":42,"name":"Ada Lovelace","active":true}',
@@ -46,6 +55,10 @@ export default function ConverterPane() {
   const [rules, setRules] = useState<TransformRule[]>([]);
   const [metrics, setMetrics] = useState<Metrics | null>(() => loadMetrics());
   const [online, setOnline] = useState(true);
+  const [mobilePane, setMobilePane] = useState<MobilePane>("input");
+  const [cloudUser, setCloudUser] = useState<string | null>(null);
+  const [cloudProjects, setCloudProjects] = useState<Project[]>([]);
+  const syncAvailable = isFirebaseSyncAvailable();
 
   useEffect(() => {
     getProjects()
@@ -54,9 +67,20 @@ export default function ConverterPane() {
     const updateOnline = () => setOnline(navigator.onLine);
     window.addEventListener("online", updateOnline);
     window.addEventListener("offline", updateOnline);
+    const unsubscribeCloud = subscribeToCloudUser((user) => {
+      setCloudUser(user?.email ?? null);
+      if (user) {
+        getCloudProjects()
+          .then(setCloudProjects)
+          .catch(() => undefined);
+      } else {
+        setCloudProjects([]);
+      }
+    });
     return () => {
       window.removeEventListener("online", updateOnline);
       window.removeEventListener("offline", updateOnline);
+      unsubscribeCloud();
     };
   }, []);
 
@@ -157,6 +181,40 @@ export default function ConverterPane() {
     });
     setProjects(await getProjects());
     setStatus("Project saved locally");
+  }
+
+  async function syncCurrentProject() {
+    try {
+      const project = {
+        name: "Synced conversion",
+        input,
+        output,
+        updatedAt: new Date().toISOString(),
+      };
+      await syncProjectToCloud(project);
+      setCloudProjects(await getCloudProjects());
+      setStatus("Project synced to Firebase");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Cloud sync failed");
+    }
+  }
+
+  async function toggleCloudAuth() {
+    try {
+      if (cloudUser) {
+        await signOutFromCloud();
+        setStatus("Signed out of cloud sync");
+      } else {
+        const user = await signInToCloud();
+        setCloudUser(user.email ?? "Connected");
+        setCloudProjects(await getCloudProjects());
+        setStatus("Cloud sync connected");
+      }
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : "Cloud sync unavailable",
+      );
+    }
   }
 
   function exportProject() {
@@ -357,6 +415,23 @@ export default function ConverterPane() {
         >
           Export
         </button>
+        {syncAvailable && (
+          <>
+            <button
+              onClick={toggleCloudAuth}
+              className="rounded border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700"
+            >
+              {cloudUser ? "Sign out" : "Connect sync"}
+            </button>
+            <button
+              onClick={syncCurrentProject}
+              disabled={!cloudUser || !input}
+              className="rounded border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-neutral-700"
+            >
+              Sync
+            </button>
+          </>
+        )}
         <span
           className={`text-xs font-semibold ${online ? "text-emerald-600" : "text-amber-600"}`}
         >
@@ -454,18 +529,38 @@ export default function ConverterPane() {
       </div>
 
       <div className="editor-grid grid gap-4 lg:grid-cols-2">
+        <div className="mobile-tabs" role="tablist" aria-label="Editor panes">
+          <button
+            className={mobilePane === "input" ? "active" : ""}
+            onClick={() => setMobilePane("input")}
+            role="tab"
+            aria-selected={mobilePane === "input"}
+          >
+            Input
+          </button>
+          <button
+            className={mobilePane === "output" ? "active" : ""}
+            onClick={() => setMobilePane("output")}
+            role="tab"
+            aria-selected={mobilePane === "output"}
+          >
+            Output
+          </button>
+        </div>
         <EditorPanel
           title="Input"
           value={input}
           onChange={handleInputChange}
           language={detected === "json" ? "json" : "toon"}
           line={validation?.error?.line}
+          mobileHidden={mobilePane !== "input"}
         />
         <EditorPanel
           title="Output"
           value={output}
           language={detected === "json" ? "toon" : "json"}
           readOnly
+          mobileHidden={mobilePane !== "output"}
         />
       </div>
 
@@ -523,6 +618,24 @@ export default function ConverterPane() {
               ))
           )}
         </InfoPanel>
+        {syncAvailable && (
+          <InfoPanel title="Cloud sync">
+            <p className="text-sm">{cloudUser ?? "Not connected"}</p>
+            {cloudProjects.slice(0, 3).map((project) => (
+              <button
+                key={`${project.id}-${project.updatedAt}`}
+                onClick={() => {
+                  setInput(project.input);
+                  setOutput(project.output);
+                  inspect(project.input);
+                }}
+                className="block w-full truncate text-left text-sm hover:underline"
+              >
+                {project.name}
+              </button>
+            ))}
+          </InfoPanel>
+        )}
       </div>
 
       {schema && (
@@ -561,6 +674,7 @@ function EditorPanel({
   language,
   readOnly,
   line,
+  mobileHidden,
 }: {
   title: string;
   value: string;
@@ -568,9 +682,10 @@ function EditorPanel({
   language: "json" | "toon";
   readOnly?: boolean;
   line?: number;
+  mobileHidden?: boolean;
 }) {
   return (
-    <div className="editor-card">
+    <div className={`editor-card ${mobileHidden ? "mobile-hidden" : ""}`}>
       <div className="editor-card-header">
         <h2 className="font-bold">{title}</h2>
         <span className="text-xs uppercase text-neutral-500">{language}</span>

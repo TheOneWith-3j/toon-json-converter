@@ -22,10 +22,11 @@
 ## History & Projects
 
 - IndexedDB storage, project export/import, and batch ZIP download
+- Optional Firebase project sync when public Firebase config is provided
 
 ## Batch Conversion
 
-- Multi-file selection and ZIP output
+- Multi-file selection, drag-and-drop, and ZIP output
 
 ## Transform Rules
 
@@ -37,11 +38,11 @@
 
 ## Firebase Sync
 
-- Optional, feature-flagged, Auth + Firestore only
+- Optional, feature-flagged, Google Auth + Firestore project sync
 
 ## PWA & Capacitor
 
-- Offline-ready, installable, mobile-first
+- Offline-ready, installable, mobile-first with tabbed editor panes
 
 ## CI/CD
 
