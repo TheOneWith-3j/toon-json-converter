@@ -384,6 +384,43 @@ button {
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.metric-card {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-solid) 82%, var(--accent) 18%);
+}
+.metric-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.metric-card strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 18px;
+  line-height: 1;
+}
+.project-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 0;
+  border-top: 1px solid var(--line);
+}
+.project-row:first-of-type {
+  border-top: 0;
+}
 .editor-card .cm-editor {
   min-height: 290px;
   border: 0;
@@ -511,5 +548,8 @@ button {
   }
   .drop-zone {
     align-items: flex-start;
+  }
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

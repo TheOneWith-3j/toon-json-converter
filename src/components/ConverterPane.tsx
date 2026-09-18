@@ -18,6 +18,7 @@ import {
   type Metrics,
 } from "../metrics/metrics";
 import {
+  deleteProject,
   getProjects,
   saveProject,
   type Project,
@@ -34,6 +35,7 @@ import CodeMirrorEditor from "./CodeMirrorEditor";
 
 type Direction = "auto" | "json-toon" | "toon-json";
 type MobilePane = "input" | "output";
+type RuleKind = TransformRule["type"];
 
 const presets: Record<string, string> = {
   "User record": '{"id":42,"name":"Ada Lovelace","active":true}',
@@ -58,6 +60,9 @@ export default function ConverterPane() {
   const [mobilePane, setMobilePane] = useState<MobilePane>("input");
   const [cloudUser, setCloudUser] = useState<string | null>(null);
   const [cloudProjects, setCloudProjects] = useState<Project[]>([]);
+  const [ruleKind, setRuleKind] = useState<RuleKind>("rename");
+  const [rulePath, setRulePath] = useState("");
+  const [ruleValue, setRuleValue] = useState("");
   const syncAvailable = isFirebaseSyncAvailable();
 
   useEffect(() => {
@@ -181,6 +186,54 @@ export default function ConverterPane() {
     });
     setProjects(await getProjects());
     setStatus("Project saved locally");
+  }
+
+  async function removeLocalProject(projectId: number | undefined) {
+    if (projectId === undefined) return;
+    await deleteProject(projectId);
+    setProjects(await getProjects());
+    setStatus("Project deleted");
+  }
+
+  function loadProject(project: Project) {
+    setInput(project.input);
+    setOutput(project.output);
+    inspect(project.input);
+    setStatus(`${project.name} loaded`);
+  }
+
+  function addTransformRule() {
+    if (!rulePath) return;
+    const values = ruleValue
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    const mapFns: Record<string, (value: unknown) => unknown> = {
+      uppercase: (value) => String(value).toUpperCase(),
+      lowercase: (value) => String(value).toLowerCase(),
+      number: (value) => Number(value),
+      string: (value) => String(value),
+      boolean: (value) => value === true || value === "true",
+      null: () => null,
+    };
+    const nextRule: TransformRule | null =
+      ruleKind === "rename" && ruleValue
+        ? { type: "rename", path: rulePath, newKey: ruleValue }
+        : ruleKind === "prefix" && ruleValue
+          ? { type: "prefix", path: rulePath, prefix: ruleValue }
+          : ruleKind === "filter" && values.length > 0
+            ? { type: "filter", path: rulePath, include: values }
+            : ruleKind === "map" && mapFns[ruleValue]
+              ? { type: "map", path: rulePath, mapFn: mapFns[ruleValue] }
+              : null;
+    if (!nextRule) {
+      setStatus("Complete the transform rule before adding it");
+      return;
+    }
+    setRules([...rules, nextRule]);
+    setRulePath("");
+    setRuleValue("");
+    setStatus("Transform rule added");
   }
 
   async function syncCurrentProject() {
@@ -458,45 +511,52 @@ export default function ConverterPane() {
       <div className="secondary-tools grid gap-4 md:grid-cols-2">
         <InfoPanel title="Transform rules">
           <div className="flex flex-wrap gap-2">
+            <select
+              value={ruleKind}
+              onChange={(event) => {
+                setRuleKind(event.target.value as RuleKind);
+                setRuleValue("");
+              }}
+              className="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
+            >
+              <option value="rename">Rename key</option>
+              <option value="prefix">Prefix value</option>
+              <option value="filter">Filter include</option>
+              <option value="map">Map value</option>
+            </select>
             <input
               placeholder="Path, e.g. users.name"
-              id="transform-path"
+              value={rulePath}
+              onChange={(event) => setRulePath(event.target.value)}
               className="min-w-40 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
             />
-            <input
-              placeholder="New key or prefix"
-              id="transform-value"
-              className="min-w-40 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
-            />
+            {ruleKind === "map" ? (
+              <select
+                value={ruleValue}
+                onChange={(event) => setRuleValue(event.target.value)}
+                className="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
+              >
+                <option value="">Choose mapping</option>
+                <option value="uppercase">Uppercase</option>
+                <option value="lowercase">Lowercase</option>
+                <option value="number">To number</option>
+                <option value="string">To string</option>
+                <option value="boolean">To boolean</option>
+                <option value="null">Set null</option>
+              </select>
+            ) : (
+              <input
+                placeholder={ruleKind === "filter" ? "Allowed values, comma-separated" : "New key or prefix"}
+                value={ruleValue}
+                onChange={(event) => setRuleValue(event.target.value)}
+                className="min-w-40 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
+              />
+            )}
             <button
-              onClick={() => {
-                const path = (
-                  document.getElementById("transform-path") as HTMLInputElement
-                ).value;
-                const value = (
-                  document.getElementById("transform-value") as HTMLInputElement
-                ).value;
-                if (path && value)
-                  setRules([...rules, { type: "rename", path, newKey: value }]);
-              }}
+              onClick={addTransformRule}
               className="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
             >
-              Add rename
-            </button>
-            <button
-              onClick={() => {
-                const path = (
-                  document.getElementById("transform-path") as HTMLInputElement
-                ).value;
-                const value = (
-                  document.getElementById("transform-value") as HTMLInputElement
-                ).value;
-                if (path && value)
-                  setRules([...rules, { type: "prefix", path, prefix: value }]);
-              }}
-              className="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
-            >
-              Add prefix
+              Add rule
             </button>
           </div>
           {rules.map((rule, index) => (
@@ -512,13 +572,13 @@ export default function ConverterPane() {
           ))}
         </InfoPanel>
         <InfoPanel title="Metrics">
-          <p className="text-sm">
-            {metrics?.totalConversions ?? 0} conversions,{" "}
-            {metrics?.successCount ?? 0} successful
-          </p>
-          <p className="text-xs text-neutral-500">
-            Stored locally in this browser
-          </p>
+          <div className="metric-grid">
+            <Metric label="Conversions" value={metrics?.totalConversions ?? 0} />
+            <Metric label="Success" value={metrics?.successCount ?? 0} />
+            <Metric label="Failures" value={metrics?.failureCount ?? 0} />
+            <Metric label="Avg out" value={`${Math.round(metrics?.avgOutputSize ?? 0)}b`} />
+          </div>
+          <p className="mt-3 text-xs text-neutral-500">Stored locally in this browser</p>
           <button
             onClick={exportMetrics}
             className="mt-3 rounded border px-2 py-1 text-xs"
@@ -601,20 +661,23 @@ export default function ConverterPane() {
             <p className="text-xs text-neutral-500">No saved projects</p>
           ) : (
             projects
-              .slice(-3)
+              .slice(-6)
               .reverse()
               .map((project) => (
-                <button
-                  key={project.id}
-                  onClick={() => {
-                    setInput(project.input);
-                    setOutput(project.output);
-                    inspect(project.input);
-                  }}
-                  className="block w-full truncate text-left text-sm hover:underline"
-                >
-                  {project.name}
-                </button>
+                <div className="project-row" key={project.id}>
+                  <button
+                    onClick={() => loadProject(project)}
+                    className="truncate text-left text-sm hover:underline"
+                  >
+                    {project.name}
+                  </button>
+                  <button
+                    onClick={() => void removeLocalProject(project.id)}
+                    className="text-xs text-neutral-500 hover:underline"
+                  >
+                    Delete
+                  </button>
+                </div>
               ))
           )}
         </InfoPanel>
@@ -712,6 +775,15 @@ function InfoPanel({
     <div className="workspace-panel p-4">
       <h3 className="mb-2 text-sm font-semibold">{title}</h3>
       {children}
+    </div>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="metric-card">
+      <span>{label}</span>
+      <strong>{value}</strong>
     </div>
   );
 }
