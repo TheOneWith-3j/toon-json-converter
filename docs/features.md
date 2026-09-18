@@ -28,7 +28,7 @@
 
 ## Batch Conversion
 
-- Multi-file selection, drag-and-drop, and ZIP output
+- Multi-file selection, drag-and-drop, ZIP output, and per-file success/failure report
 
 ## Transform Rules
 

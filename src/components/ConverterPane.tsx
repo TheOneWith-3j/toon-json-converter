@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import JSZip from "jszip";
 import { detectInputType, type DetectedType } from "../core/detect";
 import { validateInput, type ValidationResult } from "../core/validate";
+import { getBatchFileName, getBatchOutputName } from "../core/batch/batch";
 import { encodeToon, decodeToon } from "../core/codec/toon";
 import { getLineDiff } from "../core/diff/diff";
 import { inferSchema, type SchemaNode } from "../core/schema/inferSchema";
@@ -37,6 +38,15 @@ import CodeMirrorEditor from "./CodeMirrorEditor";
 type Direction = "auto" | "json-toon" | "toon-json";
 type MobilePane = "input" | "output";
 type RuleKind = TransformRule["type"];
+type BatchResult = {
+  fileName: string;
+  outputName?: string;
+  status: "converted" | "failed";
+  direction?: "json-toon" | "toon-json";
+  inputSize: number;
+  outputSize?: number;
+  error?: string;
+};
 
 const presets: Record<string, string> = {
   "User record": '{"id":42,"name":"Ada Lovelace","active":true}',
@@ -67,6 +77,7 @@ export default function ConverterPane() {
   const [ruleKind, setRuleKind] = useState<RuleKind>("rename");
   const [rulePath, setRulePath] = useState("");
   const [ruleValue, setRuleValue] = useState("");
+  const [batchResults, setBatchResults] = useState<BatchResult[]>([]);
   const syncAvailable = isFirebaseSyncAvailable();
 
   useEffect(() => {
@@ -391,11 +402,15 @@ export default function ConverterPane() {
   async function convertFiles(files: File[]) {
     if (!files.length) return;
     const zip = new JSZip();
-    let converted = 0;
+    const results: BatchResult[] = [];
     for (const file of files) {
+      const fileName = getBatchFileName(file);
       try {
         const text = await file.text();
         const type = detectInputType(text);
+        if (type === "unknown") {
+          throw new Error("Input type could not be detected");
+        }
         const targetDirection =
           direction === "auto"
             ? type === "json"
@@ -406,16 +421,26 @@ export default function ConverterPane() {
           targetDirection === "json-toon"
             ? encodeToon(applyTransforms(JSON.parse(text), rules))
             : JSON.stringify(applyTransforms(decodeToon(text), rules), null, 2);
-        const baseName = file.name.replace(/\.(json|toon)$/i, "");
-        zip.file(
-          `${baseName}.${targetDirection === "json-toon" ? "toon" : "json"}`,
-          value,
-        );
-        converted += 1;
-      } catch {
-        /* Skip invalid batch entries and report the count. */
+        const outputName = getBatchOutputName(fileName, targetDirection);
+        zip.file(outputName, value);
+        results.push({
+          fileName,
+          outputName,
+          status: "converted",
+          direction: targetDirection,
+          inputSize: text.length,
+          outputSize: value.length,
+        });
+      } catch (error) {
+        results.push({
+          fileName,
+          status: "failed",
+          inputSize: file.size,
+          error: error instanceof Error ? error.message : "Conversion failed",
+        });
       }
     }
+    const converted = results.filter((result) => result.status === "converted").length;
     if (converted) {
       const blob = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(blob);
@@ -425,6 +450,7 @@ export default function ConverterPane() {
       link.click();
       URL.revokeObjectURL(url);
     }
+    setBatchResults(results);
     setStatus(`${converted} file${converted === 1 ? "" : "s"} converted`);
   }
 
@@ -632,6 +658,37 @@ export default function ConverterPane() {
           <small>Batch conversion will package the results as a ZIP.</small>
         </span>
       </div>
+
+      {batchResults.length > 0 && (
+        <InfoPanel title="Batch report">
+          <div className="batch-summary">
+            <Metric
+              label="Converted"
+              value={batchResults.filter((result) => result.status === "converted").length}
+            />
+            <Metric
+              label="Failed"
+              value={batchResults.filter((result) => result.status === "failed").length}
+            />
+            <Metric label="Files" value={batchResults.length} />
+            <Metric
+              label="Output"
+              value={`${batchResults.reduce((total, result) => total + (result.outputSize ?? 0), 0)}b`}
+            />
+          </div>
+          <div className="batch-list">
+            {batchResults.map((result) => (
+              <div className="batch-row" key={`${result.fileName}-${result.outputName ?? result.error}`}>
+                <span className={result.status}>{result.status}</span>
+                <strong>{result.fileName}</strong>
+                <small>
+                  {result.outputName ?? result.error}
+                </small>
+              </div>
+            ))}
+          </div>
+        </InfoPanel>
+      )}
 
       <div className="secondary-tools grid gap-4 md:grid-cols-2">
         <InfoPanel title="Transform rules">
