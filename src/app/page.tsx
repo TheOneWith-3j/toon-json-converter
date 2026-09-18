@@ -68,6 +68,25 @@ export default function HomePage() {
         </div>
       </div>
       <ConverterPane />
+      <footer className="app-footer">
+        <span>© 2026 TOONWORKS. Local-first by default.</span>
+        <div className="footer-links">
+          <a
+            href="https://github.com/TheOneWith-3j/toon-json-converter"
+            target="_blank"
+            rel="noreferrer"
+          >
+            GitHub
+          </a>
+          <a
+            href="https://github.com/TheOneWith-3j/toon-json-converter/blob/main/docs/privacy.md"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Privacy
+          </a>
+        </div>
+      </footer>
     </main>
   );
 }
