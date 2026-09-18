@@ -1,8 +1,25 @@
-import React, { useEffect, useRef } from "react";
-import { EditorView, basicSetup } from "@codemirror/view";
-import { EditorState } from "@codemirror/state";
+"use client";
+
+import { useEffect, useRef } from "react";
+import { Decoration, EditorView } from "@codemirror/view";
+import { EditorState, StateEffect, StateField } from "@codemirror/state";
 import { json as jsonLang } from "@codemirror/lang-json";
+import { StreamLanguage } from "@codemirror/language";
 import { oneDark } from "@codemirror/theme-one-dark";
+
+const toonLang = StreamLanguage.define({
+  startState: () => ({}),
+  token(stream) {
+    if (stream.eatSpace()) return null;
+    if (stream.match(/^[\w-]+(?=\s*:)/)) return "propertyName";
+    if (stream.match(/^[-[\]{},:]/)) return "punctuation";
+    if (stream.match(/^"(?:[^"\\]|\\.)*"/)) return "string";
+    if (stream.match(/^(?:true|false|null)\b/)) return "bool";
+    if (stream.match(/^-?\d+(?:\.\d+)?/)) return "number";
+    stream.next();
+    return null;
+  },
+});
 
 interface CodeMirrorEditorProps {
   value: string;
@@ -27,9 +44,36 @@ export default function CodeMirrorEditor({
     if (viewRef.current) {
       viewRef.current.destroy();
     }
+    const highlightLineEffect = StateEffect.define<number | null>();
+    const highlightedLine = StateField.define<
+      ReturnType<typeof Decoration.set>
+    >({
+      create: () => Decoration.none,
+      update: (decorations, transaction) => {
+        decorations = decorations.map(transaction.changes);
+        for (const effect of transaction.effects) {
+          if (effect.is(highlightLineEffect)) {
+            if (
+              effect.value === null ||
+              effect.value < 1 ||
+              effect.value > transaction.state.doc.lines
+            ) {
+              decorations = Decoration.none;
+            } else {
+              const line = transaction.state.doc.line(effect.value);
+              decorations = Decoration.set([
+                Decoration.line({ class: "cm-error-line" }).range(line.from),
+              ]);
+            }
+          }
+        }
+        return decorations;
+      },
+      provide: (field) => EditorView.decorations.from(field),
+    });
     const extensions = [
-      basicSetup,
       oneDark,
+      highlightedLine,
       EditorView.editable.of(!readOnly),
       EditorView.lineWrapping,
       EditorView.updateListener.of((update) => {
@@ -40,8 +84,9 @@ export default function CodeMirrorEditor({
     ];
     if (language === "json") {
       extensions.push(jsonLang());
+    } else {
+      extensions.push(toonLang);
     }
-    // TODO: Add custom TOON highlighting extension
     const state = EditorState.create({
       doc: value,
       extensions,
@@ -50,7 +95,9 @@ export default function CodeMirrorEditor({
       state,
       parent: editorRef.current,
     });
-    // TODO: Highlight error line if highlightLine is set
+    viewRef.current.dispatch({
+      effects: highlightLineEffect.of(highlightLine ?? null),
+    });
     return () => {
       if (viewRef.current) {
         viewRef.current.destroy();

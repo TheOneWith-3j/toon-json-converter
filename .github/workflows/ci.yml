@@ -13,18 +13,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
-      - name: Install pnpm
-        run: npm install -g pnpm
+          cache: "npm"
       - name: Install dependencies
-        run: pnpm install
+        run: npm ci
       - name: Lint
-        run: pnpm lint
+        run: npm run lint
       - name: Typecheck
-        run: pnpm exec tsc --noEmit
+        run: npm exec tsc -- --noEmit
       - name: Test
-        run: pnpm exec vitest run
+        run: npm test -- --run
       - name: Build
-        run: pnpm build
-      - name: Export static
-        run: pnpm exec next export
+        run: npm run build

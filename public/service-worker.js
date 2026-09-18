@@ -1,4 +1,5 @@
-// Service worker for offline caching
+const CACHE_NAME = "toon-json-converter-v1";
+
 self.addEventListener("install", () => {
   self.skipWaiting();
 });
@@ -10,18 +11,16 @@ self.addEventListener("activate", () => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   event.respondWith(
-    caches.open("toon-json-converter-v1").then((cache) => {
-      return cache.match(event.request).then((response) => {
-        return (
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.match(event.request).then(
+        (response) =>
           response ||
           fetch(event.request).then((networkResponse) => {
-            if (networkResponse.ok) {
+            if (networkResponse.ok)
               cache.put(event.request, networkResponse.clone());
-            }
             return networkResponse;
-          })
-        );
-      });
-    }),
+          }),
+      ),
+    ),
   );
 });

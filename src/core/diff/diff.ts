@@ -5,6 +5,6 @@ export function getLineDiff(a: string, b: string) {
   return diffLines(a, b);
 }
 
-export function getJsonDiff(a: any, b: any) {
+export function getJsonDiff(a: string | object, b: string | object) {
   return diffJson(a, b);
 }

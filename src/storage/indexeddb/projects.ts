@@ -4,6 +4,14 @@ import { openDB } from "idb";
 const DB_NAME = "toon-json-converter";
 const STORE_NAME = "projects";
 
+export interface Project {
+  id?: number;
+  name: string;
+  input: string;
+  output: string;
+  updatedAt: string;
+}
+
 export async function getDb() {
   return openDB(DB_NAME, 1, {
     upgrade(db) {
@@ -17,12 +25,15 @@ export async function getDb() {
   });
 }
 
-export async function saveProject(project: any) {
+export async function saveProject(project: Project) {
   const db = await getDb();
-  await db.put(STORE_NAME, project);
+  if (project.id === undefined) {
+    return db.add(STORE_NAME, project);
+  }
+  return db.put(STORE_NAME, project);
 }
 
-export async function getProjects() {
+export async function getProjects(): Promise<Project[]> {
   const db = await getDb();
   return db.getAll(STORE_NAME);
 }

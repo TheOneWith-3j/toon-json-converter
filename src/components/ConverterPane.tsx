@@ -1,101 +1,618 @@
-// Main converter pane with CodeMirror editors
-import React, { useState } from "react";
-import { detectInputType } from "../core/detect";
-import { validateInput } from "../core/validate";
-import { encodeToon, decodeToon } from "../core/codec/toon";
-import { getLineDiff, getJsonDiff } from "../core/diff/diff";
-import { inferSchema } from "../core/schema/inferSchema";
-import { applyTransforms } from "../core/transforms/transformEngine";
-import { saveProject, getProjects } from "../storage/indexeddb/projects";
-import { getDefaultMetrics } from "../metrics/metrics";
-// CodeMirror imports
-import { EditorView } from "@codemirror/view";
-import { EditorState } from "@codemirror/state";
-import { json as jsonLang } from "@codemirror/lang-json";
-import { oneDark } from "@codemirror/theme-one-dark";
+"use client";
 
-// Placeholder for CodeMirror integration
-// TODO: Replace with actual CodeMirror React component
+import { useEffect, useState, type ReactNode } from "react";
+import JSZip from "jszip";
+import { detectInputType, type DetectedType } from "../core/detect";
+import { validateInput, type ValidationResult } from "../core/validate";
+import { encodeToon, decodeToon } from "../core/codec/toon";
+import { getLineDiff } from "../core/diff/diff";
+import { inferSchema, type SchemaNode } from "../core/schema/inferSchema";
+import {
+  applyTransforms,
+  type TransformRule,
+} from "../core/transforms/transformEngine";
+import {
+  loadMetrics,
+  recordConversion,
+  saveMetrics,
+  type Metrics,
+} from "../metrics/metrics";
+import {
+  getProjects,
+  saveProject,
+  type Project,
+} from "../storage/indexeddb/projects";
+import CodeMirrorEditor from "./CodeMirrorEditor";
+
+type Direction = "auto" | "json-toon" | "toon-json";
+
+const presets: Record<string, string> = {
+  "User record": '{"id":42,"name":"Ada Lovelace","active":true}',
+  "Inventory list": '{"items":[{"sku":"A-1","qty":12},{"sku":"B-2","qty":4}]}',
+  "Event payload":
+    '{"event":"checkout.completed","timestamp":"2026-09-14T12:00:00Z","total":99.5}',
+};
 
 export default function ConverterPane() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
-  const [detected, setDetected] = useState<"json" | "toon" | "unknown">(
-    "unknown",
-  );
-  const [validation, setValidation] = useState<any>(null);
-  const [diff, setDiff] = useState<any>(null);
-  const [schema, setSchema] = useState<any>(null);
+  const [detected, setDetected] = useState<DetectedType>("unknown");
+  const [direction, setDirection] = useState<Direction>("auto");
+  const [validation, setValidation] = useState<ValidationResult | null>(null);
+  const [schema, setSchema] = useState<SchemaNode | null>(null);
+  const [roundTrip, setRoundTrip] = useState<boolean | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [status, setStatus] = useState("");
+  const [rules, setRules] = useState<TransformRule[]>([]);
+  const [metrics, setMetrics] = useState<Metrics | null>(() => loadMetrics());
+  const [online, setOnline] = useState(true);
 
-  // Handle input change
-  function handleInputChange(val: string) {
-    setInput(val);
-    const type = detectInputType(val);
+  useEffect(() => {
+    getProjects()
+      .then(setProjects)
+      .catch(() => undefined);
+    const updateOnline = () => setOnline(navigator.onLine);
+    window.addEventListener("online", updateOnline);
+    window.addEventListener("offline", updateOnline);
+    return () => {
+      window.removeEventListener("online", updateOnline);
+      window.removeEventListener("offline", updateOnline);
+    };
+  }, []);
+
+  function inspect(value: string) {
+    const type = detectInputType(value);
     setDetected(type);
-    setValidation(validateInput(val));
-    if (type === "json") {
-      try {
-        const json = JSON.parse(val);
-        setOutput(encodeToon(json));
+    setValidation(value ? validateInput(value) : null);
+  }
+
+  function convert(value = input, selectedDirection = direction) {
+    const type = detectInputType(value);
+    const actualDirection =
+      selectedDirection === "auto"
+        ? type === "json"
+          ? "json-toon"
+          : "toon-json"
+        : selectedDirection;
+    let outputSize = 0;
+    try {
+      if (actualDirection === "json-toon") {
+        const json = applyTransforms(JSON.parse(value), rules);
+        const toon = encodeToon(json);
+        outputSize = toon.length;
+        setOutput(toon);
         setSchema(inferSchema(json));
-      } catch {}
-    } else if (type === "toon") {
-      try {
-        const json = decodeToon(val);
-        setOutput(JSON.stringify(json, null, 2));
+        setRoundTrip(JSON.stringify(decodeToon(toon)) === JSON.stringify(json));
+      } else {
+        const json = applyTransforms(decodeToon(value), rules);
+        const jsonText = JSON.stringify(json, null, 2);
+        outputSize = jsonText.length;
+        setOutput(jsonText);
         setSchema(inferSchema(json));
-      } catch {}
-    } else {
+        setRoundTrip(
+          JSON.stringify(decodeToon(encodeToon(json))) === JSON.stringify(json),
+        );
+      }
+      if (metrics) {
+        const nextMetrics = recordConversion(
+          metrics,
+          value.length,
+          outputSize,
+          actualDirection,
+          true,
+        );
+        setMetrics(nextMetrics);
+        saveMetrics(nextMetrics);
+      }
+      setStatus("Converted successfully");
+    } catch (error) {
       setOutput("");
       setSchema(null);
+      setRoundTrip(null);
+      if (metrics) {
+        const nextMetrics = recordConversion(
+          metrics,
+          value.length,
+          0,
+          actualDirection,
+          false,
+        );
+        setMetrics(nextMetrics);
+        saveMetrics(nextMetrics);
+      }
+      setStatus(error instanceof Error ? error.message : "Conversion failed");
     }
   }
 
-  // TODO: Add diff, round-trip, transform, batch, history, metrics, etc.
+  function handleInputChange(value: string) {
+    setInput(value);
+    inspect(value);
+    if (direction === "auto") convert(value, "auto");
+  }
+
+  function repairInput() {
+    const repaired = input
+      .replace(/,\s*([}\]])/g, "$1")
+      .replace(/([{,]\s*)'([^']+)'\s*:/g, '$1"$2":')
+      .replace(/:\s*'([^']*)'/g, ': "$1"');
+    try {
+      const formatted = JSON.stringify(JSON.parse(repaired), null, 2);
+      setInput(formatted);
+      inspect(formatted);
+      convert(formatted, "json-toon");
+      setStatus("Input repaired and converted");
+    } catch {
+      setStatus("No safe repair was found");
+    }
+  }
+
+  async function saveCurrentProject() {
+    const name = window.prompt("Project name", "Untitled conversion");
+    if (!name) return;
+    await saveProject({
+      name,
+      input,
+      output,
+      updatedAt: new Date().toISOString(),
+    });
+    setProjects(await getProjects());
+    setStatus("Project saved locally");
+  }
+
+  function exportProject() {
+    const blob = new Blob(
+      [
+        JSON.stringify(
+          {
+            name: "Exported project",
+            input,
+            output,
+            updatedAt: new Date().toISOString(),
+          },
+          null,
+          2,
+        ),
+      ],
+      { type: "application/json" },
+    );
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "toon-project.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importProject(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    file
+      .text()
+      .then((text) => {
+        const project = JSON.parse(text) as Project;
+        setInput(project.input);
+        setOutput(project.output);
+        inspect(project.input);
+        setStatus("Project imported");
+      })
+      .catch(() => setStatus("Invalid project file"));
+    event.target.value = "";
+  }
+
+  async function convertFiles(files: File[]) {
+    if (!files.length) return;
+    const zip = new JSZip();
+    let converted = 0;
+    for (const file of files) {
+      try {
+        const text = await file.text();
+        const type = detectInputType(text);
+        const targetDirection =
+          direction === "auto"
+            ? type === "json"
+              ? "json-toon"
+              : "toon-json"
+            : direction;
+        const value =
+          targetDirection === "json-toon"
+            ? encodeToon(applyTransforms(JSON.parse(text), rules))
+            : JSON.stringify(applyTransforms(decodeToon(text), rules), null, 2);
+        const baseName = file.name.replace(/\.(json|toon)$/i, "");
+        zip.file(
+          `${baseName}.${targetDirection === "json-toon" ? "toon" : "json"}`,
+          value,
+        );
+        converted += 1;
+      } catch {
+        /* Skip invalid batch entries and report the count. */
+      }
+    }
+    if (converted) {
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "toon-batch.zip";
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+    setStatus(`${converted} file${converted === 1 ? "" : "s"} converted`);
+  }
+
+  async function convertBatch(event: React.ChangeEvent<HTMLInputElement>) {
+    await convertFiles([...(event.target.files ?? [])]);
+    event.target.value = "";
+  }
+
+  function exportMetrics() {
+    if (!metrics) return;
+    const blob = new Blob([JSON.stringify(metrics, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "toon-metrics.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadOutput() {
+    const blob = new Blob([output], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download =
+      direction === "toon-json" ? "converted.json" : "converted.toon";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const diff = output ? getLineDiff(input, output) : [];
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 p-4">
-      <div className="flex-1">
-        <h2 className="font-bold mb-2">Input</h2>
-        {/* CodeMirror input editor */}
-        <CodeMirrorEditor
+    <section
+      className="workspace-shell space-y-4"
+      onKeyDown={(event) => {
+        if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+          event.preventDefault();
+          convert();
+        }
+      }}
+    >
+      <div className="workspace-toolbar flex flex-wrap items-center gap-3">
+        <label className="text-sm font-semibold" htmlFor="direction">
+          Direction
+        </label>
+        <select
+          id="direction"
+          value={direction}
+          onChange={(event) => setDirection(event.target.value as Direction)}
+          className="rounded border border-neutral-300 bg-transparent px-2 py-1 text-sm dark:border-neutral-700"
+        >
+          <option value="auto">Auto detect</option>
+          <option value="json-toon">JSON to TOON</option>
+          <option value="toon-json">TOON to JSON</option>
+        </select>
+        <select
+          defaultValue=""
+          onChange={(event) => {
+            const value = presets[event.target.value];
+            if (value) {
+              setInput(value);
+              inspect(value);
+              convert(value, "json-toon");
+            }
+          }}
+          className="rounded border border-neutral-300 bg-transparent px-2 py-1 text-sm dark:border-neutral-700"
+        >
+          <option value="">Load preset</option>
+          {Object.keys(presets).map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={() => convert()}
+          className="rounded bg-neutral-900 px-3 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-neutral-900"
+        >
+          Convert
+        </button>
+        <button
+          onClick={saveCurrentProject}
+          className="rounded border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700"
+        >
+          Save project
+        </button>
+        <button
+          onClick={downloadOutput}
+          disabled={!output}
+          className="rounded border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-neutral-700"
+        >
+          Download
+        </button>
+        <label className="cursor-pointer rounded border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700">
+          Batch ZIP
+          <input
+            type="file"
+            multiple
+            accept=".json,.toon,text/plain,application/json"
+            onChange={convertBatch}
+            className="hidden"
+          />
+        </label>
+        <label className="cursor-pointer rounded border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700">
+          Import
+          <input
+            type="file"
+            accept="application/json"
+            onChange={importProject}
+            className="hidden"
+          />
+        </label>
+        <button
+          onClick={exportProject}
+          className="rounded border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700"
+        >
+          Export
+        </button>
+        <span
+          className={`text-xs font-semibold ${online ? "text-emerald-600" : "text-amber-600"}`}
+        >
+          {online ? "Online" : "Offline"}
+        </span>
+        {status && <span className="text-xs text-neutral-500">{status}</span>}
+      </div>
+
+      <div
+        className="drop-zone"
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          void convertFiles([...event.dataTransfer.files]);
+        }}
+      >
+        <span className="drop-zone-icon">↓</span>
+        <span>
+          <strong>Drop JSON or TOON files here</strong>
+          <small>Batch conversion will package the results as a ZIP.</small>
+        </span>
+      </div>
+
+      <div className="secondary-tools grid gap-4 md:grid-cols-2">
+        <InfoPanel title="Transform rules">
+          <div className="flex flex-wrap gap-2">
+            <input
+              placeholder="Path, e.g. users.name"
+              id="transform-path"
+              className="min-w-40 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
+            />
+            <input
+              placeholder="New key or prefix"
+              id="transform-value"
+              className="min-w-40 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
+            />
+            <button
+              onClick={() => {
+                const path = (
+                  document.getElementById("transform-path") as HTMLInputElement
+                ).value;
+                const value = (
+                  document.getElementById("transform-value") as HTMLInputElement
+                ).value;
+                if (path && value)
+                  setRules([...rules, { type: "rename", path, newKey: value }]);
+              }}
+              className="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
+            >
+              Add rename
+            </button>
+            <button
+              onClick={() => {
+                const path = (
+                  document.getElementById("transform-path") as HTMLInputElement
+                ).value;
+                const value = (
+                  document.getElementById("transform-value") as HTMLInputElement
+                ).value;
+                if (path && value)
+                  setRules([...rules, { type: "prefix", path, prefix: value }]);
+              }}
+              className="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
+            >
+              Add prefix
+            </button>
+          </div>
+          {rules.map((rule, index) => (
+            <button
+              key={`${rule.path}-${index}`}
+              onClick={() =>
+                setRules(rules.filter((_, ruleIndex) => ruleIndex !== index))
+              }
+              className="mr-2 mt-2 text-xs text-neutral-500 underline"
+            >
+              {rule.type}: {rule.path} x
+            </button>
+          ))}
+        </InfoPanel>
+        <InfoPanel title="Metrics">
+          <p className="text-sm">
+            {metrics?.totalConversions ?? 0} conversions,{" "}
+            {metrics?.successCount ?? 0} successful
+          </p>
+          <p className="text-xs text-neutral-500">
+            Stored locally in this browser
+          </p>
+          <button
+            onClick={exportMetrics}
+            className="mt-3 rounded border px-2 py-1 text-xs"
+          >
+            Export metrics
+          </button>
+        </InfoPanel>
+      </div>
+
+      <div className="editor-grid grid gap-4 lg:grid-cols-2">
+        <EditorPanel
+          title="Input"
           value={input}
           onChange={handleInputChange}
-          readOnly={false}
           language={detected === "json" ? "json" : "toon"}
-          highlightLine={validation?.error?.line}
+          line={validation?.error?.line}
         />
-        <div className="mt-2 text-sm">
-          Detected:{" "}
-          <span className="font-semibold">{detected.toUpperCase()}</span>
-        </div>
-        {validation && !validation.valid && (
-          <div className="mt-2 text-red-600 dark:text-red-400">
-            Error: {validation.error?.message}
-            {validation.error?.line && (
-              <span>
-                {" "}
-                (Line {validation.error.line}, Column {validation.error.column})
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-      <div className="flex-1">
-        <h2 className="font-bold mb-2">Output</h2>
-        {/* CodeMirror output editor (read-only) */}
-        <CodeMirrorEditor
+        <EditorPanel
+          title="Output"
           value={output}
-          readOnly={true}
           language={detected === "json" ? "toon" : "json"}
+          readOnly
         />
-        {/* Schema visualization placeholder */}
-        {schema && (
-          <div className="mt-2 text-xs">
-            <pre>{JSON.stringify(schema, null, 2)}</pre>
-          </div>
-        )}
       </div>
+
+      {validation && !validation.valid && detected === "unknown" && (
+        <div className="repair-banner">
+          <div>
+            <strong>Input needs attention</strong>
+            <span>
+              Try removing trailing commas or normalizing quoted values.
+            </span>
+          </div>
+          <button onClick={repairInput}>Repair JSON</button>
+        </div>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <InfoPanel title="Detection">
+          <p className="font-semibold uppercase">{detected}</p>
+          <p className="text-xs text-neutral-500">
+            {validation?.valid
+              ? "Valid input"
+              : (validation?.error?.message ?? "Enter JSON or TOON to begin")}
+          </p>
+        </InfoPanel>
+        <InfoPanel title="Round trip">
+          <p
+            className={`font-semibold ${roundTrip === false ? "text-red-600" : "text-emerald-600"}`}
+          >
+            {roundTrip === null
+              ? "Not checked"
+              : roundTrip
+                ? "Verified"
+                : "Mismatch"}
+          </p>
+        </InfoPanel>
+        <InfoPanel title="Local projects">
+          {projects.length === 0 ? (
+            <p className="text-xs text-neutral-500">No saved projects</p>
+          ) : (
+            projects
+              .slice(-3)
+              .reverse()
+              .map((project) => (
+                <button
+                  key={project.id}
+                  onClick={() => {
+                    setInput(project.input);
+                    setOutput(project.output);
+                    inspect(project.input);
+                  }}
+                  className="block w-full truncate text-left text-sm hover:underline"
+                >
+                  {project.name}
+                </button>
+              ))
+          )}
+        </InfoPanel>
+      </div>
+
+      {schema && (
+        <InfoPanel title="Inferred schema">
+          <SchemaTree node={schema} />
+        </InfoPanel>
+      )}
+      {diff.length > 0 && (
+        <InfoPanel title="Line diff">
+          <pre className="max-h-56 overflow-auto text-xs">
+            {diff.map((part, index) => (
+              <span
+                key={index}
+                className={
+                  part.added
+                    ? "bg-emerald-100 text-emerald-800"
+                    : part.removed
+                      ? "bg-red-100 text-red-800"
+                      : ""
+                }
+              >
+                {part.value}
+              </span>
+            ))}
+          </pre>
+        </InfoPanel>
+      )}
+    </section>
+  );
+}
+
+function EditorPanel({
+  title,
+  value,
+  onChange,
+  language,
+  readOnly,
+  line,
+}: {
+  title: string;
+  value: string;
+  onChange?: (value: string) => void;
+  language: "json" | "toon";
+  readOnly?: boolean;
+  line?: number;
+}) {
+  return (
+    <div className="editor-card">
+      <div className="editor-card-header">
+        <h2 className="font-bold">{title}</h2>
+        <span className="text-xs uppercase text-neutral-500">{language}</span>
+      </div>
+      <CodeMirrorEditor
+        value={value}
+        onChange={onChange}
+        readOnly={readOnly}
+        language={language}
+        highlightLine={line}
+      />
+    </div>
+  );
+}
+
+function InfoPanel({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="workspace-panel p-4">
+      <h3 className="mb-2 text-sm font-semibold">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function SchemaTree({ node, depth = 0 }: { node: SchemaNode; depth?: number }) {
+  return (
+    <div className="text-xs" style={{ paddingLeft: depth * 12 }}>
+      <span className="font-semibold">{node.key}</span>: {node.type}
+      {node.optional ? " (optional)" : ""}
+      {node.children?.map((child) => (
+        <SchemaTree
+          key={`${node.key}-${child.key}`}
+          node={child}
+          depth={depth + 1}
+        />
+      ))}
     </div>
   );
 }
