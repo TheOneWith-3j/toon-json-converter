@@ -9,6 +9,7 @@
 
 - `npm run build`
 - `npm run build` writes the static site to `out/` via `next.config.ts`.
+- `npm run preview` serves the exported site locally.
 
 ## Deployment
 
@@ -36,6 +37,8 @@ Add these public web app values when cloud project sync should be enabled:
 - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
 - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
 - `NEXT_PUBLIC_FIREBASE_APP_ID`
+
+Use `.env.example` as the template and copy values into `.env.local` for local development.
 
 Firestore rules for the project sync collection are documented in [firebase-rules.md](firebase-rules.md).
 

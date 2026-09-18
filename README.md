@@ -44,13 +44,23 @@ npm install
 npm run dev
 ```
 
+Open `http://localhost:3000`.
+
+## Validation
+
+```sh
+npm run validate
+```
+
 ## Static Export & Deployment
 
 ```sh
 npm run build
+npm run preview
 ```
 
 - Deploy `out/` to GitHub Pages, Cloudflare Pages, or Firebase Hosting.
+- GitHub Pages deploys automatically when changes land on `main`.
 
 ## PWA & Capacitor
 
@@ -59,7 +69,8 @@ npm run build
 
 ## Firebase Setup (Optional)
 
-- Add Firebase config to `.env` and enable sync features.
+- Copy `.env.example` to `.env.local` and add Firebase web app values to enable sync features.
+- Firestore rules are documented in `/docs/firebase-rules.md`.
 
 ## Metrics & Privacy
 
@@ -69,6 +80,7 @@ npm run build
 ## Documentation
 
 - See `/docs/` for feature guides, setup, and deployment instructions.
+- See `/docs/release-checklist.md` before publishing a release.
 
 ## License
 

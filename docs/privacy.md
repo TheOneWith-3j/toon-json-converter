@@ -7,12 +7,13 @@
 
 ## Cloud Metrics (Optional)
 
-- If Firebase enabled and opted-in, metrics are sent to Firestore
+- Firebase sync stores project documents only when the user connects cloud sync
+- Metrics remain local and exportable from the browser dashboard
 
 ## Opt-In & Controls
 
 - Metrics dashboard with export option
-- Clear privacy toggle in app
+- Cloud sync controls only appear when Firebase public config is present
 
 ## Policy
 
