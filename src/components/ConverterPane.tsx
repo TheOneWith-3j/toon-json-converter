@@ -238,6 +238,7 @@ export default function ConverterPane() {
   const [roundTrip, setRoundTrip] = useState<boolean | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectName, setProjectName] = useState("Untitled conversion");
+  const [activeProjectId, setActiveProjectId] = useState<Project["id"]>();
   const [projectSearch, setProjectSearch] = useState("");
   const [status, setStatus] = useState("");
   const [rules, setRules] = useState<TransformRule[]>([]);
@@ -440,12 +441,16 @@ export default function ConverterPane() {
 
   async function saveCurrentProject() {
     const name = projectName.trim() || "Untitled conversion";
-    await saveProject({
+    const savedId = await saveProject({
+      id: activeProjectId,
       name,
       input,
       output,
       updatedAt: new Date().toISOString(),
     });
+    if (typeof savedId === "number" || typeof savedId === "string") {
+      setActiveProjectId(savedId);
+    }
     setProjects(await getProjects());
     setStatus("Project saved locally");
   }
@@ -455,11 +460,15 @@ export default function ConverterPane() {
     const confirmed = window.confirm("Delete this local project?");
     if (!confirmed) return;
     await deleteProject(projectId);
+    if (activeProjectId === projectId) {
+      setActiveProjectId(undefined);
+    }
     setProjects(await getProjects());
     setStatus("Project deleted");
   }
 
   function loadProject(project: Project) {
+    setActiveProjectId(project.id);
     setInput(project.input);
     setOutput(project.output);
     setProjectName(project.name);
@@ -504,7 +513,8 @@ export default function ConverterPane() {
   async function syncCurrentProject() {
     try {
       const project = {
-        name: "Synced conversion",
+        id: activeProjectId,
+        name: projectName.trim() || "Untitled conversion",
         input,
         output,
         updatedAt: new Date().toISOString(),
@@ -1178,7 +1188,7 @@ export default function ConverterPane() {
                 : "Mismatch"}
           </p>
         </InfoPanel>
-        <InfoPanel title="Local projects">
+        <InfoPanel title={`Local projects (${projects.length})`}>
           <div className="project-controls">
             <input
               value={projectName}
@@ -1224,21 +1234,23 @@ export default function ConverterPane() {
           <InfoPanel title="Cloud sync">
             <p className="text-sm">{cloudUser ?? "Not connected"}</p>
             <p className="text-xs text-neutral-500">
-              Newer `updatedAt` wins when local and cloud projects conflict.
+              {cloudUser
+                ? "Sync the active project or pull newer cloud projects into this browser."
+                : "Connect Google to sync projects across browsers."}
             </p>
-            {cloudProjects.slice(0, 3).map((project) => (
-              <button
-                key={`${project.id}-${project.updatedAt}`}
-                onClick={() => {
-                  setInput(project.input);
-                  setOutput(project.output);
-                  inspect(project.input);
-                }}
-                className="block w-full truncate text-left text-sm hover:underline"
-              >
-                {project.name}
-              </button>
-            ))}
+            {cloudUser && cloudProjects.length === 0 ? (
+              <p className="text-xs text-neutral-500">No cloud projects yet</p>
+            ) : (
+              cloudProjects.slice(0, 3).map((project) => (
+                <button
+                  key={`${project.id}-${project.updatedAt}`}
+                  onClick={() => loadProject(project)}
+                  className="block w-full truncate text-left text-sm hover:underline"
+                >
+                  {project.name}
+                </button>
+              ))
+            )}
           </InfoPanel>
         )}
       </div>
