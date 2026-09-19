@@ -64,3 +64,32 @@ test("toggles theme and exposes mobile editor tabs", async ({ page, isMobile }) 
     await expect(page.getByRole("tab", { name: "Output" })).toHaveAttribute("aria-selected", "true");
   }
 });
+
+test("typing a full multi-line JSON document lands character-for-character", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(
+    isMobile,
+    "synthetic touch-keyboard typing is unreliable in emulated mobile browsers",
+  );
+  const json = JSON.stringify(
+    {
+      company: "Ada & Sons, Inc.",
+      tags: ["tech", "café"],
+      employees: [
+        { id: 1, name: "Grace Hopper", roles: ["engineer", "admiral"] },
+        { id: 2, name: "Alan Turing" },
+      ],
+    },
+    null,
+    2,
+  );
+
+  const input = page.locator(".editor-card.is-input .cm-content");
+  await input.click();
+  await page.keyboard.type(json, { delay: 2 });
+
+  await expect(input).toHaveText(json.replace(/\n/g, ""));
+  await expect(page.getByText("Verified", { exact: true })).toBeVisible();
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import JSZip from "jszip";
 import { detectInputType, type DetectedType } from "../core/detect";
 import { validateInput, type ValidationResult } from "../core/validate";
@@ -56,6 +56,174 @@ const presets: Record<string, string> = {
     '{"event":"checkout.completed","timestamp":"2026-09-14T12:00:00Z","total":99.5}',
 };
 
+function IconBolt() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="14"
+      height="14"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M8.5 1.5 3 9h4l-.5 5.5L13 7H9l.5-5.5Z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+function IconWand() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="14"
+      height="14"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M2 14 12 4"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M11 2.5v2M14.5 5h-2M9 7l1 1M13 2l1 1"
+        stroke="currentColor"
+        strokeWidth="1.1"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+function IconSwap() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="14"
+      height="14"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M3 5h9m0 0-2.5-2.5M12 5l-2.5 2.5M13 11H4m0 0 2.5-2.5M4 11l2.5 2.5"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+function IconCopy() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="14"
+      height="14"
+      fill="none"
+      aria-hidden="true"
+    >
+      <rect
+        x="5.5"
+        y="5.5"
+        width="8"
+        height="8"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
+      <path
+        d="M3.5 10.5v-6A1 1 0 0 1 4.5 3.5h6"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+function IconClear() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="14"
+      height="14"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M4 4l8 8M12 4l-8 8"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+function IconSave() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="14"
+      height="14"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M3 3h7l3 3v7H3V3Z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5.5 3v3.5h5V3M5 10h6"
+        stroke="currentColor"
+        strokeWidth="1.1"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+function IconDownload() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="14"
+      height="14"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M8 2.5v7.5m0 0 3-3m-3 3-3-3M3 13h10"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+function IconCloud() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="14"
+      height="14"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M5 12h6a2.5 2.5 0 0 0 .3-4.98A3.5 3.5 0 0 0 4.9 6.2 2.75 2.75 0 0 0 5 12Z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function ConverterPane() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
@@ -79,13 +247,20 @@ export default function ConverterPane() {
   const [rulePath, setRulePath] = useState("");
   const [ruleValue, setRuleValue] = useState("");
   const [batchResults, setBatchResults] = useState<BatchResult[]>([]);
+  const [isDragActive, setIsDragActive] = useState(false);
+  const [splitRatio, setSplitRatio] = useState(50);
+  const editorGridRef = useRef<HTMLDivElement>(null);
   const syncAvailable = isFirebaseSyncAvailable();
 
   useEffect(() => {
     getProjects()
       .then(setProjects)
       .catch(() => undefined);
-    queueMicrotask(() => setMetrics(loadMetrics()));
+    queueMicrotask(() => {
+      setMetrics(loadMetrics());
+      const savedSplit = Number(localStorage.getItem("toon-split-ratio"));
+      if (savedSplit >= 20 && savedSplit <= 80) setSplitRatio(savedSplit);
+    });
     const updateOnline = () => setOnline(navigator.onLine);
     window.addEventListener("online", updateOnline);
     window.addEventListener("offline", updateOnline);
@@ -184,6 +359,33 @@ export default function ConverterPane() {
     setSchema(null);
     setRoundTrip(null);
     setStatus("Workspace cleared");
+  }
+
+  function clampSplitRatio(ratio: number) {
+    return Math.min(75, Math.max(25, ratio));
+  }
+
+  function updateSplitRatio(ratio: number) {
+    const clamped = clampSplitRatio(ratio);
+    setSplitRatio(clamped);
+    localStorage.setItem("toon-split-ratio", String(clamped));
+  }
+
+  function handleSplitDragStart(event: React.PointerEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const container = editorGridRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    function handleMove(moveEvent: PointerEvent) {
+      const ratio = ((moveEvent.clientX - rect.left) / rect.width) * 100;
+      updateSplitRatio(ratio);
+    }
+    function handleUp() {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+    }
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
   }
 
   function swapEditors() {
@@ -525,155 +727,197 @@ export default function ConverterPane() {
         }
       }}
     >
-      <div className="workspace-toolbar flex flex-wrap items-center gap-3">
-        <label className="text-sm font-semibold" htmlFor="direction">
-          Direction
-        </label>
-        <select
-          id="direction"
-          value={direction}
-          onChange={(event) => setDirection(event.target.value as Direction)}
-          className="rounded border border-neutral-300 bg-transparent px-2 py-1 text-sm dark:border-neutral-700"
-        >
-          <option value="auto">Auto detect</option>
-          <option value="json-toon">JSON to TOON</option>
-          <option value="toon-json">TOON to JSON</option>
-        </select>
-        <select
-          defaultValue=""
-          onChange={(event) => {
-            const value = presets[event.target.value];
-            if (value) {
-              setInput(value);
-              inspect(value);
-              convert(value, "json-toon");
-            }
-          }}
-          className="rounded border border-neutral-300 bg-transparent px-2 py-1 text-sm dark:border-neutral-700"
-        >
-          <option value="">Load preset</option>
-          {Object.keys(presets).map((name) => (
-            <option key={name} value={name}>
-              {name}
-            </option>
-          ))}
-        </select>
-        <button
-          onClick={() => convert()}
-          className="rounded bg-neutral-900 px-3 py-1.5 text-sm font-semibold text-white dark:bg-white dark:text-neutral-900"
-        >
-          Convert
-        </button>
-        <button
-          onClick={formatInput}
-          disabled={!input}
-          className="rounded border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-neutral-700"
-        >
-          Format
-        </button>
-        <button
-          onClick={swapEditors}
-          disabled={!output}
-          className="rounded border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-neutral-700"
-        >
-          Swap
-        </button>
-        <button
-          onClick={copyOutput}
-          disabled={!output}
-          className="rounded border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-neutral-700"
-        >
-          Copy
-        </button>
-        <button
-          onClick={clearWorkspace}
-          disabled={!input && !output}
-          className="rounded border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-neutral-700"
-        >
-          Clear
-        </button>
-        <button
-          onClick={saveCurrentProject}
-          className="rounded border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700"
-        >
-          Save project
-        </button>
-        <button
-          onClick={downloadOutput}
-          disabled={!output}
-          className="rounded border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-neutral-700"
-        >
-          Download
-        </button>
-        <label className="cursor-pointer rounded border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700">
-          Batch ZIP
-          <input
-            type="file"
-            multiple
-            accept=".json,.toon,text/plain,application/json"
-            onChange={convertBatch}
-            className="hidden"
-          />
-        </label>
-        <label className="cursor-pointer rounded border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700">
-          Import
-          <input
-            type="file"
-            accept="application/json"
-            onChange={importProject}
-            className="hidden"
-          />
-        </label>
-        <button
-          onClick={() => exportProject()}
-          className="rounded border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700"
-        >
-          Export
-        </button>
-        <button
-          onClick={() => exportProject(projects)}
-          disabled={projects.length === 0}
-          className="rounded border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-neutral-700"
-        >
-          Export all
-        </button>
-        {syncAvailable && (
-          <>
-            <button
-              onClick={toggleCloudAuth}
-              className="rounded border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700"
+      <div className="workspace-toolbar">
+        <div className="toolbar-row">
+          <div className="toolbar-group toolbar-group-convert">
+            <label className="text-sm font-semibold" htmlFor="direction">
+              Direction
+            </label>
+            <select
+              id="direction"
+              value={direction}
+              onChange={(event) =>
+                setDirection(event.target.value as Direction)
+              }
             >
-              {cloudUser ? "Sign out" : "Connect sync"}
+              <option value="auto">Auto detect</option>
+              <option value="json-toon">JSON to TOON</option>
+              <option value="toon-json">TOON to JSON</option>
+            </select>
+            <select
+              defaultValue=""
+              onChange={(event) => {
+                const value = presets[event.target.value];
+                if (value) {
+                  setInput(value);
+                  inspect(value);
+                  convert(value, "json-toon");
+                }
+              }}
+            >
+              <option value="">Load preset</option>
+              {Object.keys(presets).map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            <button onClick={() => convert()} className="btn-primary">
+              <IconBolt />
+              Convert
+              <kbd className="hint">⌘⏎</kbd>
+            </button>
+          </div>
+
+          <span className="toolbar-divider" aria-hidden="true" />
+
+          <div className="toolbar-group toolbar-group-edit">
+            <button
+              onClick={formatInput}
+              disabled={!input}
+              title="Format or canonicalize the input"
+            >
+              <IconWand />
+              Format
             </button>
             <button
-              onClick={syncCurrentProject}
-              disabled={!cloudUser || !input}
-              className="rounded border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-neutral-700"
+              onClick={swapEditors}
+              disabled={!output}
+              title="Swap input and output"
             >
-              Sync
+              <IconSwap />
+              Swap
             </button>
             <button
-              onClick={pullCloudProjects}
-              disabled={!cloudUser}
-              className="rounded border border-neutral-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-neutral-700"
+              onClick={copyOutput}
+              disabled={!output}
+              title="Copy output to clipboard"
             >
-              Pull cloud
+              <IconCopy />
+              Copy
             </button>
-          </>
+            <button
+              onClick={clearWorkspace}
+              disabled={!input && !output}
+              title="Clear the workspace"
+            >
+              <IconClear />
+              Clear
+            </button>
+          </div>
+
+          <span className="toolbar-divider" aria-hidden="true" />
+
+          <div className="toolbar-group toolbar-group-project">
+            <button
+              onClick={saveCurrentProject}
+              title="Save this conversion locally"
+            >
+              <IconSave />
+              Save project
+            </button>
+            <button
+              onClick={downloadOutput}
+              disabled={!output}
+              title="Download the converted output"
+            >
+              <IconDownload />
+              Download
+            </button>
+            <label
+              className="cursor-pointer"
+              title="Convert multiple files into a ZIP"
+            >
+              Batch ZIP
+              <input
+                type="file"
+                multiple
+                accept=".json,.toon,text/plain,application/json"
+                onChange={convertBatch}
+                className="hidden"
+              />
+            </label>
+            <label
+              className="cursor-pointer"
+              title="Import a saved project file"
+            >
+              Import
+              <input
+                type="file"
+                accept="application/json"
+                onChange={importProject}
+                className="hidden"
+              />
+            </label>
+            <button
+              onClick={() => exportProject()}
+              title="Export the current project"
+            >
+              Export
+            </button>
+            <button
+              onClick={() => exportProject(projects)}
+              disabled={projects.length === 0}
+              title="Export every local project"
+            >
+              Export all
+            </button>
+          </div>
+
+          {syncAvailable && (
+            <>
+              <span className="toolbar-divider" aria-hidden="true" />
+              <div className="toolbar-group toolbar-group-cloud">
+                <button onClick={toggleCloudAuth}>
+                  <IconCloud />
+                  {cloudUser ? "Sign out" : "Connect sync"}
+                </button>
+                <button
+                  onClick={syncCurrentProject}
+                  disabled={!cloudUser || !input}
+                  title="Sync this project to the cloud"
+                >
+                  Sync
+                </button>
+                <button
+                  onClick={pullCloudProjects}
+                  disabled={!cloudUser}
+                  title="Pull and merge cloud projects"
+                >
+                  Pull cloud
+                </button>
+              </div>
+            </>
+          )}
+
+          <div className="toolbar-status">
+            <span
+              className={`status-pill ${online ? "is-online" : "is-offline"}`}
+            >
+              <span className="status-dot" />
+              {online ? "Online" : "Offline"}
+            </span>
+          </div>
+        </div>
+        {status && (
+          <div className="toolbar-feedback" role="status" key={status}>
+            <span className="feedback-dot" />
+            {status}
+          </div>
         )}
-        <span
-          className={`text-xs font-semibold ${online ? "text-emerald-600" : "text-amber-600"}`}
-        >
-          {online ? "Online" : "Offline"}
-        </span>
-        {status && <span className="text-xs text-neutral-500">{status}</span>}
       </div>
 
       <div
-        className="drop-zone"
+        className={`drop-zone ${isDragActive ? "is-active" : ""}`}
+        onDragEnter={(event) => {
+          event.preventDefault();
+          setIsDragActive(true);
+        }}
         onDragOver={(event) => event.preventDefault()}
+        onDragLeave={() => setIsDragActive(false)}
         onDrop={(event) => {
           event.preventDefault();
+          setIsDragActive(false);
           void convertFiles([...event.dataTransfer.files]);
         }}
       >
@@ -685,7 +929,7 @@ export default function ConverterPane() {
       </div>
 
       {batchResults.length > 0 && (
-        <InfoPanel title="Batch report">
+        <InfoPanel title="Batch report" className="batch-report-panel">
           <div className="batch-summary">
             <Metric
               label="Converted"
@@ -707,10 +951,11 @@ export default function ConverterPane() {
               value={`${batchResults.reduce((total, result) => total + (result.outputSize ?? 0), 0)}b`}
             />
           </div>
-          <div className="batch-list">
-            {batchResults.map((result) => (
+          <div className="batch-list scroll-thin">
+            {batchResults.map((result, index) => (
               <div
                 className="batch-row"
+                style={{ "--row-index": index } as React.CSSProperties}
                 key={`${result.fileName}-${result.outputName ?? result.error}`}
               >
                 <span className={result.status}>{result.status}</span>
@@ -814,7 +1059,11 @@ export default function ConverterPane() {
         </InfoPanel>
       </div>
 
-      <div className="editor-grid grid gap-4 lg:grid-cols-2">
+      <div
+        className="editor-grid"
+        ref={editorGridRef}
+        style={{ "--split": `${splitRatio}%` } as React.CSSProperties}
+      >
         <div className="mobile-tabs" role="tablist" aria-label="Editor panes">
           <button
             className={mobilePane === "input" ? "active" : ""}
@@ -840,6 +1089,20 @@ export default function ConverterPane() {
           language={detected === "toon" ? "toon" : "json"}
           line={validation?.error?.line}
           mobileHidden={mobilePane !== "input"}
+          tone="input"
+        />
+        <div
+          className="split-handle"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize input and output panels"
+          tabIndex={0}
+          onPointerDown={handleSplitDragStart}
+          onDoubleClick={() => updateSplitRatio(50)}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowLeft") updateSplitRatio(splitRatio - 2);
+            if (event.key === "ArrowRight") updateSplitRatio(splitRatio + 2);
+          }}
         />
         <EditorPanel
           title="Output"
@@ -847,18 +1110,34 @@ export default function ConverterPane() {
           language={outputType}
           readOnly
           mobileHidden={mobilePane !== "output"}
+          tone="output"
         />
       </div>
 
       {output && (
-        <div className="comparison-bar">
-          <Metric label="Input" value={`${input.length}b`} />
-          <Metric label="Output" value={`${output.length}b`} />
-          <Metric
-            label="Size delta"
-            value={`${sizeDelta > 0 ? "+" : ""}${sizeDelta}%`}
-          />
-          <Metric label="Diff" value={`+${addedLines} / -${removedLines}`} />
+        <div className="insights-bar">
+          <p className="insights-headline">
+            {sizeDelta <= 0 ? (
+              <>
+                TOON output is <strong>{Math.abs(sizeDelta)}% smaller</strong>{" "}
+                than the source input.
+              </>
+            ) : (
+              <>
+                TOON output is <strong>{sizeDelta}% larger</strong> than the
+                source input.
+              </>
+            )}
+          </p>
+          <div className="comparison-bar">
+            <Metric label="Input" value={`${input.length}b`} />
+            <Metric label="Output" value={`${output.length}b`} />
+            <Metric
+              label="Size delta"
+              value={`${sizeDelta > 0 ? "+" : ""}${sizeDelta}%`}
+            />
+            <Metric label="Diff" value={`+${addedLines} / -${removedLines}`} />
+          </div>
         </div>
       )}
 
@@ -917,8 +1196,12 @@ export default function ConverterPane() {
             filteredProjects
               .slice(-6)
               .reverse()
-              .map((project) => (
-                <div className="project-row" key={project.id}>
+              .map((project, index) => (
+                <div
+                  className="project-row"
+                  style={{ "--row-index": index } as React.CSSProperties}
+                  key={project.id}
+                >
                   <button
                     onClick={() => loadProject(project)}
                     className="truncate text-left text-sm hover:underline"
@@ -959,17 +1242,17 @@ export default function ConverterPane() {
       </div>
 
       {schema && (
-        <InfoPanel title="Inferred schema">
+        <InfoPanel title="Inferred schema" className="trailing-panel">
           <SchemaTree node={schema} />
         </InfoPanel>
       )}
       {diff.length > 0 && (
-        <InfoPanel title="Line diff">
+        <InfoPanel title="Line diff" className="trailing-panel">
           <div className="diff-summary">
             <span>Added {addedLines}</span>
             <span>Removed {removedLines}</span>
           </div>
-          <pre className="max-h-56 overflow-auto text-xs">
+          <pre className="max-h-56 overflow-auto text-xs scroll-thin">
             {diff.map((part, index) => (
               <span
                 key={index}
@@ -1003,6 +1286,7 @@ function EditorPanel({
   readOnly,
   line,
   mobileHidden,
+  tone,
 }: {
   title: string;
   value: string;
@@ -1011,9 +1295,12 @@ function EditorPanel({
   readOnly?: boolean;
   line?: number;
   mobileHidden?: boolean;
+  tone: "input" | "output";
 }) {
   return (
-    <div className={`editor-card ${mobileHidden ? "mobile-hidden" : ""}`}>
+    <div
+      className={`editor-card is-${tone} ${mobileHidden ? "mobile-hidden" : ""}`}
+    >
       <div className="editor-card-header">
         <h2 className="font-bold">{title}</h2>
         <span className="text-xs uppercase text-neutral-500">{language}</span>
@@ -1032,12 +1319,14 @@ function EditorPanel({
 function InfoPanel({
   title,
   children,
+  className,
 }: {
   title: string;
   children: ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="workspace-panel p-4">
+    <div className={`workspace-panel p-4 ${className ?? ""}`}>
       <h3 className="mb-2 text-sm font-semibold">{title}</h3>
       {children}
     </div>
