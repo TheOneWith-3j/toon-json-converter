@@ -441,13 +441,16 @@ export default function ConverterPane() {
 
   async function saveCurrentProject() {
     const name = projectName.trim() || "Untitled conversion";
-    const savedId = await saveProject({
-      id: activeProjectId,
+    const project: Project = {
       name,
       input,
       output,
       updatedAt: new Date().toISOString(),
-    });
+    };
+    if (activeProjectId !== undefined) {
+      project.id = activeProjectId;
+    }
+    const savedId = await saveProject(project);
     if (typeof savedId === "number" || typeof savedId === "string") {
       setActiveProjectId(savedId);
     }
