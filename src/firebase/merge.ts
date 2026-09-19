@@ -7,6 +7,14 @@ export type ProjectMergeResult = {
   conflicts: number;
 };
 
+export function sortProjectsByUpdatedAt(projects: Project[]) {
+  return [...projects].sort((left, right) => {
+    return (
+      new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime()
+    );
+  });
+}
+
 export function mergeProjectsByUpdatedAt(localProjects: Project[], cloudProjects: Project[]): ProjectMergeResult {
   const merged = new Map<string, Project>();
   let added = 0;
@@ -35,7 +43,12 @@ export function mergeProjectsByUpdatedAt(localProjects: Project[], cloudProjects
     }
   }
 
-  return { projects: [...merged.values()], added, updated, conflicts };
+  return {
+    projects: sortProjectsByUpdatedAt([...merged.values()]),
+    added,
+    updated,
+    conflicts,
+  };
 }
 
 function getProjectMergeKey(project: Project) {
