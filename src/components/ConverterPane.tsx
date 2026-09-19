@@ -33,7 +33,10 @@ import {
   subscribeToCloudUser,
   syncProjectToCloud,
 } from "../firebase/sync";
-import { mergeProjectsByUpdatedAt } from "../firebase/merge";
+import {
+  mergeProjectsByUpdatedAt,
+  sortProjectsByUpdatedAt,
+} from "../firebase/merge";
 import CodeMirrorEditor from "./CodeMirrorEditor";
 
 type Direction = "auto" | "json-toon" | "toon-json";
@@ -713,8 +716,10 @@ export default function ConverterPane() {
     input.length === 0
       ? 0
       : Math.round(((output.length - input.length) / input.length) * 100);
-  const filteredProjects = projects.filter((project) =>
-    project.name.toLowerCase().includes(projectSearch.toLowerCase()),
+  const filteredProjects = sortProjectsByUpdatedAt(
+    projects.filter((project) =>
+      project.name.toLowerCase().includes(projectSearch.toLowerCase()),
+    ),
   );
 
   return (
@@ -1193,29 +1198,26 @@ export default function ConverterPane() {
               No projects match this search
             </p>
           ) : (
-            filteredProjects
-              .slice(-6)
-              .reverse()
-              .map((project, index) => (
-                <div
-                  className="project-row"
-                  style={{ "--row-index": index } as React.CSSProperties}
-                  key={project.id}
+            filteredProjects.slice(0, 6).map((project, index) => (
+              <div
+                className="project-row"
+                style={{ "--row-index": index } as React.CSSProperties}
+                key={project.id}
+              >
+                <button
+                  onClick={() => loadProject(project)}
+                  className="truncate text-left text-sm hover:underline"
                 >
-                  <button
-                    onClick={() => loadProject(project)}
-                    className="truncate text-left text-sm hover:underline"
-                  >
-                    {project.name}
-                  </button>
-                  <button
-                    onClick={() => void removeLocalProject(project.id)}
-                    className="text-xs text-neutral-500 hover:underline"
-                  >
-                    Delete
-                  </button>
-                </div>
-              ))
+                  {project.name}
+                </button>
+                <button
+                  onClick={() => void removeLocalProject(project.id)}
+                  className="text-xs text-neutral-500 hover:underline"
+                >
+                  Delete
+                </button>
+              </div>
+            ))
           )}
         </InfoPanel>
         {syncAvailable && (
