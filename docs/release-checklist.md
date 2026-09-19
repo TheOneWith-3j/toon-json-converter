@@ -34,15 +34,16 @@ Check these browser flows before publishing:
 
 The Playwright release smoke suite automates the primary conversion, project, batch report, theme, and mobile tab checks.
 
-## GitHub Pages
+## Vercel
 
-Merging to `main` runs `.github/workflows/deploy.yml` and publishes the static `out/` directory.
+Connect the repository to Vercel and configure the production environment variables there.
+Every push to the production branch should create a deployment, while GitHub Actions validates the change.
 
-Required repository settings:
+Required settings:
 
-- GitHub Actions enabled.
-- Pages source configured for the deployment branch used by the workflow.
-- `GITHUB_TOKEN` has permission to write Pages output.
+- `NEXT_PUBLIC_SITE_URL` set to the Vercel production URL.
+- Firebase `NEXT_PUBLIC_*` values set only when cloud sync is enabled.
+- Preview deployments enabled for pull requests.
 
 ## Optional Firebase Sync
 
