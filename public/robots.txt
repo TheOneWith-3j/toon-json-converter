@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://toon-json-converter.vercel.app/sitemap.xml

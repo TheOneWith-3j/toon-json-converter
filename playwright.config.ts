@@ -11,7 +11,7 @@ export default defineConfig({
     acceptDownloads: true,
   },
   webServer: {
-    command: "npm run build && npx serve out -l 3100",
+    command: "npm run build && npm run start -- -p 3100",
     url: "http://127.0.0.1:3100",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

@@ -22,7 +22,7 @@ A feature-rich, production-quality, fully serverless converter for JSON ↔ TOON
 - Metrics dashboard (privacy-aware)
 - PWA: offline-ready, installable
 - Capacitor compatible
-- CI/CD: GitHub Actions, deploy to Pages
+- CI/CD: GitHub Actions validation, deploy to Vercel
 
 ## Tech Stack
 
@@ -41,10 +41,13 @@ A feature-rich, production-quality, fully serverless converter for JSON ↔ TOON
 
 ```sh
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
 Open `http://localhost:3000`.
+
+Set `NEXT_PUBLIC_SITE_URL` in `.env.local` to your deployed domain for canonical metadata, robots, and sitemap generation.
 
 ## Validation
 
@@ -58,15 +61,17 @@ The first local E2E run may need browser installation:
 npx playwright install chromium
 ```
 
-## Static Export & Deployment
+## Deployment
 
 ```sh
 npm run build
 npm run preview
 ```
 
-- Deploy `out/` to GitHub Pages, Cloudflare Pages, or Firebase Hosting.
-- GitHub Pages deploys automatically when changes land on `main`.
+- The production deployment targets Vercel. Connect the repository in Vercel
+	and set `NEXT_PUBLIC_SITE_URL` to the deployed URL.
+- GitHub Actions runs lint, typecheck, unit tests, production build, and E2E
+	smoke tests for pushes and pull requests.
 
 ## PWA & Capacitor
 
