@@ -3,6 +3,32 @@
 import { useEffect, useState } from "react";
 import ConverterPane from "../components/ConverterPane";
 
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "JSON ↔ TOON Converter",
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "Web",
+  description:
+    "Online JSON to TOON converter and TOON to JSON converter for developers, with validation, diffing, schema inspection, local project storage, and batch conversion.",
+  url: "https://toon-json-converter.vercel.app",
+  image: "https://toon-json-converter.vercel.app/icon-512.png",
+  browserRequirements: "Requires modern web browser",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+  featureList: [
+    "JSON to TOON converter",
+    "TOON to JSON converter",
+    "round-trip verification",
+    "schema inspection",
+    "batch conversion",
+    "local-first workflow",
+  ],
+};
+
 export default function HomePage() {
   const [dark, setDark] = useState(false);
 
@@ -27,6 +53,10 @@ export default function HomePage() {
 
   return (
     <main className="app-shell">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <header className="app-header">
         <div className="brand-lockup">
           <div className="brand-mark" aria-hidden="true">
@@ -51,22 +81,23 @@ export default function HomePage() {
           </button>
         </div>
       </header>
-      <div className="page-intro">
+      <section className="page-intro" aria-labelledby="hero-title">
         <div>
           <p className="eyebrow">FORMAT LAB / 01</p>
-          <h1>Shape data with intent.</h1>
+          <h1 id="hero-title">JSON to TOON Converter</h1>
           <p className="intro-copy">
-            A fast, private workbench for moving between JSON and TOON without
-            losing the details that matter.
+            Convert JSON to TOON and TOON to JSON online with validation, schema
+            inspection, diffing, and local-first project storage built for real
+            developer workflows.
           </p>
         </div>
-        <div className="intro-stamp">
+        <div className="intro-stamp" aria-label="JSON and TOON converter">
           <strong>JSON</strong>
           <span>↔</span>
           <strong>TOON</strong>
           <small>CANONICAL / VERIFIED</small>
         </div>
-      </div>
+      </section>
       <ConverterPane />
       <footer className="app-footer">
         <span>© 2026 TOONWORKS. Local-first by default.</span>

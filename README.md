@@ -41,10 +41,13 @@ A feature-rich, production-quality, fully serverless converter for JSON ↔ TOON
 
 ```sh
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
 Open `http://localhost:3000`.
+
+Set `NEXT_PUBLIC_SITE_URL` in `.env.local` to your deployed domain for canonical metadata, robots, and sitemap generation.
 
 ## Validation
 
