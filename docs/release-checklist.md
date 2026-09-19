@@ -53,7 +53,8 @@ Before enabling Firebase for users:
 
 - Add the public Firebase web app values to the deployment environment.
 - Enable Google sign-in in Firebase Authentication.
-- Apply the Firestore rules in `docs/firebase-rules.md`.
+- Publish the checked-in `firestore.rules` in Firestore Database > Rules.
+- Confirm unauthenticated reads and writes are denied.
 - Confirm project pull/merge behavior with two browser sessions.
 
 ## Release Notes
