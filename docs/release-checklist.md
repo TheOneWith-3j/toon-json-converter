@@ -14,7 +14,7 @@ Install the browser binary once before local E2E runs:
 npx playwright install chromium
 ```
 
-Preview the static export locally:
+Preview the production build locally:
 
 ```sh
 npm run build
