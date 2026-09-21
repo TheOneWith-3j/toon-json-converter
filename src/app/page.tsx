@@ -30,6 +30,11 @@ const structuredData = {
     "batch conversion",
     "local-first workflow",
   ],
+  sameAs: [
+    "https://github.com/toon-format/spec",
+    "https://github.com/toon-format/toon",
+    "https://github.com/TheOneWith-3j/toon-json-converter",
+  ],
 };
 
 const faqStructuredData = {
@@ -190,6 +195,51 @@ export default function HomePage() {
               used when you connect it and sign in.
             </p>
           </details>
+        </div>
+        <div className="resource-links" aria-labelledby="resources-title">
+          <div>
+            <p className="eyebrow">DEVELOPER REFERENCES / 03</p>
+            <h3 id="resources-title">Learn more about JSON and TOON</h3>
+            <p>
+              Read the format documentation, inspect the implementation, or use
+              the official SDK when you want to bring TOON into your own tools
+              and applications.
+            </p>
+          </div>
+          <div className="resource-link-grid">
+            <a
+              href="https://github.com/toon-format/spec"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <strong>TOON specification</strong>
+              <span>Format rules and examples from the source project</span>
+            </a>
+            <a
+              href="https://github.com/toon-format/toon"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <strong>Official TypeScript SDK</strong>
+              <span>Encode and decode TOON in JavaScript or TypeScript</span>
+            </a>
+            <a
+              href="https://www.npmjs.com/package/@toon-format/toon"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <strong>TOON on npm</strong>
+              <span>Install the package and review published versions</span>
+            </a>
+            <a
+              href="https://github.com/TheOneWith-3j/toon-json-converter"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <strong>Converter source code</strong>
+              <span>Issues, feature requests, and contribution guide</span>
+            </a>
+          </div>
         </div>
       </section>
       <footer className="app-footer">
