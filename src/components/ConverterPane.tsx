@@ -985,9 +985,13 @@ export default function ConverterPane() {
         </InfoPanel>
       )}
 
-      <div className="secondary-tools grid gap-4 md:grid-cols-2">
-        <InfoPanel title="Transform rules">
-          <div className="flex flex-wrap gap-2">
+      <div className="secondary-tools tools-grid">
+        <InfoPanel title="Transform rules" className="transform-panel">
+          <p className="panel-description">
+            Shape your data before conversion. Add rules in plain language and
+            remove them anytime.
+          </p>
+          <div className="transform-builder">
             <select
               value={ruleKind}
               onChange={(event) => {
@@ -1035,24 +1039,36 @@ export default function ConverterPane() {
             )}
             <button
               onClick={addTransformRule}
-              className="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
+              className="add-rule-button"
             >
-              Add rule
+              + Add rule
             </button>
           </div>
-          {rules.map((rule, index) => (
-            <button
-              key={`${rule.path}-${index}`}
-              onClick={() =>
-                setRules(rules.filter((_, ruleIndex) => ruleIndex !== index))
-              }
-              className="mr-2 mt-2 text-xs text-neutral-500 underline"
-            >
-              {rule.type}: {rule.path} x
-            </button>
-          ))}
+          <div className="rule-list">
+            {rules.length === 0 ? (
+              <span className="empty-note">No rules added yet</span>
+            ) : (
+              rules.map((rule, index) => (
+                <button
+                  key={`${rule.path}-${index}`}
+                  onClick={() =>
+                    setRules(rules.filter((_, ruleIndex) => ruleIndex !== index))
+                  }
+                  className="rule-chip"
+                  title="Remove this rule"
+                >
+                  <span>{rule.type}</span>
+                  {rule.path}
+                  <b>×</b>
+                </button>
+              ))
+            )}
+          </div>
         </InfoPanel>
-        <InfoPanel title="Metrics">
+        <InfoPanel title="Metrics" className="metrics-panel">
+          <p className="panel-description">
+            A private snapshot of your work in this browser.
+          </p>
           <div className="metric-grid">
             <Metric
               label="Conversions"
@@ -1070,9 +1086,9 @@ export default function ConverterPane() {
           </p>
           <button
             onClick={exportMetrics}
-            className="mt-3 rounded border px-2 py-1 text-xs"
+            className="export-metrics-button"
           >
-            Export metrics
+            Export local metrics
           </button>
         </InfoPanel>
       </div>
@@ -1171,27 +1187,34 @@ export default function ConverterPane() {
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <InfoPanel title="Detection">
-          <p className="font-semibold uppercase">{detected}</p>
-          <p className="text-xs text-neutral-500">
-            {validation?.valid
-              ? "Valid input"
-              : (validation?.error?.message ?? "Enter JSON or TOON to begin")}
-          </p>
+      <div className="project-insights-grid">
+        <InfoPanel title="Input health" className="health-panel">
+          <div className="health-status">
+            <span className={`health-orb is-${detected}`} />
+            <div>
+              <p className="health-value">{detected}</p>
+              <p className="health-copy">
+                {validation?.valid
+                  ? "Valid input detected"
+                  : (validation?.error?.message ?? "Enter JSON or TOON to begin")}
+              </p>
+            </div>
+          </div>
         </InfoPanel>
-        <InfoPanel title="Round trip">
-          <p
-            className={`font-semibold ${roundTrip === false ? "text-red-600" : "text-emerald-600"}`}
-          >
-            {roundTrip === null
-              ? "Not checked"
-              : roundTrip
-                ? "Verified"
-                : "Mismatch"}
-          </p>
+        <InfoPanel title="Round trip" className="health-panel">
+          <div className="health-status">
+            <span className={`health-orb ${roundTrip ? "is-verified" : "is-idle"}`} />
+            <div>
+              <p className="health-value">
+                {roundTrip === null ? "Not checked" : roundTrip ? "Verified" : "Mismatch"}
+              </p>
+              <p className="health-copy">
+                {roundTrip ? "Output preserves the source data" : "Convert to verify fidelity"}
+              </p>
+            </div>
+          </div>
         </InfoPanel>
-        <InfoPanel title={`Local projects (${projects.length})`}>
+        <InfoPanel title={`Local projects (${projects.length})`} className="projects-panel">
           <div className="project-controls">
             <input
               value={projectName}
@@ -1234,7 +1257,7 @@ export default function ConverterPane() {
           )}
         </InfoPanel>
         {syncAvailable && (
-          <InfoPanel title="Cloud sync">
+          <InfoPanel title="Cloud sync" className="cloud-panel">
             <p className="text-sm">{cloudUser ?? "Not connected"}</p>
             <p className="text-xs text-neutral-500">
               {cloudUser

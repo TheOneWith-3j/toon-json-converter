@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import ConverterPane from "../components/ConverterPane";
 
 const siteUrl =
@@ -102,9 +103,14 @@ export default function HomePage() {
       />
       <header className="app-header">
         <div className="brand-lockup">
-          <div className="brand-mark" aria-hidden="true">
-            <span />
-          </div>
+          <Image
+            className="brand-mark"
+            src="/brand-mark.svg"
+            alt=""
+            aria-hidden="true"
+            width={34}
+            height={34}
+          />
           <div>
             <p className="brand-name">TOONWORKS</p>
             <p className="brand-subtitle">structured data studio</p>
@@ -139,6 +145,31 @@ export default function HomePage() {
           <span>↔</span>
           <strong>TOON</strong>
           <small>CANONICAL / VERIFIED</small>
+        </div>
+      </section>
+      <section className="value-strip" aria-label="Converter benefits">
+        <div className="value-item">
+          <span className="value-number">01</span>
+          <div>
+            <strong>Private by default</strong>
+            <span>Your data stays in the browser unless you choose sync.</span>
+          </div>
+        </div>
+        <div className="value-item">
+          <span className="value-number">02</span>
+          <div>
+            <strong>Verified output</strong>
+            <span>Validate, compare, and check round-trip fidelity.</span>
+          </div>
+        </div>
+        <div className="value-item">
+          <span className="value-number">03</span>
+          <div>
+            <strong>Built for real work</strong>
+            <span>
+              Save projects, apply transforms, and batch-convert files.
+            </span>
+          </div>
         </div>
       </section>
       <ConverterPane />
