@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import ConverterPane from "../components/ConverterPane";
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://toon-json-converter.vercel.app";
+
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
@@ -11,8 +14,8 @@ const structuredData = {
   operatingSystem: "Web",
   description:
     "Online JSON to TOON converter and TOON to JSON converter for developers, with validation, diffing, schema inspection, local project storage, and batch conversion.",
-  url: "https://toon-json-converter.vercel.app",
-  image: "https://toon-json-converter.vercel.app/icon-512.png",
+  url: siteUrl,
+  image: `${siteUrl}/icon-512.png`,
   browserRequirements: "Requires modern web browser",
   offers: {
     "@type": "Offer",
@@ -26,6 +29,37 @@ const structuredData = {
     "schema inspection",
     "batch conversion",
     "local-first workflow",
+  ],
+};
+
+const faqStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What is a JSON to TOON converter?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "A JSON to TOON converter transforms JSON data into TOON, a compact notation for structured data. This tool also converts TOON back to JSON and verifies the round trip.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is this JSON to TOON converter free?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. The converter is free to use in a modern browser, with no account required for local conversion.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is my JSON uploaded to a server?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Conversion runs in your browser by default. Input and output stay local unless you explicitly enable optional Firebase project sync.",
+      },
+    },
   ],
 };
 
@@ -56,6 +90,10 @@ export default function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
       />
       <header className="app-header">
         <div className="brand-lockup">
@@ -99,6 +137,61 @@ export default function HomePage() {
         </div>
       </section>
       <ConverterPane />
+      <section className="seo-guide" aria-labelledby="guide-title">
+        <div>
+          <p className="eyebrow">CONVERSION GUIDE / 02</p>
+          <h2 id="guide-title">Free JSON to TOON converter</h2>
+          <p>
+            Use this online JSON to TOON converter to turn JSON objects and
+            arrays into compact, readable TOON. Switch directions to convert
+            TOON back to formatted JSON, then inspect validation, size changes,
+            diffs, and round-trip verification in the same workspace.
+          </p>
+        </div>
+        <div className="seo-guide-grid">
+          <article>
+            <h3>What is TOON?</h3>
+            <p>
+              TOON is a compact notation for structured data. It is designed to
+              represent JSON-like objects and arrays with less repetition,
+              making data easier to read and useful in token-conscious
+              workflows.
+            </p>
+          </article>
+          <article>
+            <h3>Private browser conversion</h3>
+            <p>
+              JSON and TOON conversion runs locally in your browser. You can
+              format, validate, compare, download, and batch-convert files
+              without sending their contents to this website.
+            </p>
+          </article>
+          <article>
+            <h3>Built for developer workflows</h3>
+            <p>
+              Check canonical output, infer a schema, apply transforms, save
+              local projects, and verify that a JSON to TOON to JSON round trip
+              preserves the data you started with.
+            </p>
+          </article>
+        </div>
+        <div className="seo-faq">
+          <h3>Common questions</h3>
+          <details>
+            <summary>Is this JSON to TOON converter free?</summary>
+            <p>
+              Yes. Local conversion is free and does not require an account.
+            </p>
+          </details>
+          <details>
+            <summary>Does the converter upload my data?</summary>
+            <p>
+              No. Conversion is local by default. Optional Firebase sync is only
+              used when you connect it and sign in.
+            </p>
+          </details>
+        </div>
+      </section>
       <footer className="app-footer">
         <span>© 2026 TOONWORKS. Local-first by default.</span>
         <div className="footer-links">

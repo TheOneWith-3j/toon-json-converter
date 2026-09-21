@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import ServiceWorkerRegistration from "./ServiceWorkerRegistration";
 
@@ -15,15 +17,16 @@ const geistMono = Geist_Mono({
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://toon-json-converter.vercel.app";
+const enableVercelTelemetry = process.env.VERCEL === "1";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "JSON ↔ TOON Converter",
+    default: "JSON to TOON Converter | Free Online Tool",
     template: "%s | JSON ↔ TOON Converter",
   },
   description:
-    "Fast, private JSON ↔ TOON conversion with verification, schema insights, batch processing, and local-first project storage.",
+    "Convert JSON to TOON and TOON to JSON online for free. Validate, format, compare, and batch-convert structured data privately in your browser.",
   applicationName: "TOONWORKS",
   keywords: [
     "JSON to TOON",
@@ -37,9 +40,9 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "JSON ↔ TOON Converter",
+    title: "JSON to TOON Converter | Free Online Tool",
     description:
-      "A private, local-first converter for structured data workflows with verification and diffing.",
+      "Convert JSON to TOON and TOON to JSON online with validation, round-trip verification, and local-first privacy.",
     url: "/",
     siteName: "TOONWORKS",
     type: "website",
@@ -55,7 +58,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "JSON ↔ TOON Converter",
+    title: "JSON to TOON Converter | Free Online Tool",
     description:
       "Convert JSON and TOON with trust, validation, and a local-first workflow.",
     images: ["/icon-512.png"],
@@ -82,6 +85,8 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {children}
         <ServiceWorkerRegistration />
+        {enableVercelTelemetry && <Analytics />}
+        {enableVercelTelemetry && <SpeedInsights />}
       </body>
     </html>
   );
