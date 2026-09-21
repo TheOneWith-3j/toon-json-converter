@@ -1175,7 +1175,8 @@ kbd.hint {
 .tools-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.65fr) minmax(260px, 0.85fr);
-  gap: 16px;
+  gap: 20px;
+  align-items: start;
 }
 .transform-panel,
 .metrics-panel,
@@ -1186,15 +1187,24 @@ kbd.hint {
 }
 .panel-description {
   max-width: 58ch;
-  margin: -2px 0 14px;
+  margin: 0 0 18px;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.5;
 }
+.tools-grid .workspace-panel {
+  padding: 20px;
+}
+.tools-grid .workspace-panel h3 {
+  margin: 0 0 10px;
+}
 .transform-builder {
   display: grid;
-  grid-template-columns: minmax(125px, 0.8fr) minmax(145px, 1fr) minmax(145px, 1fr) auto;
-  gap: 8px;
+  grid-template-columns: minmax(125px, 0.8fr) minmax(145px, 1fr) minmax(
+      145px,
+      1fr
+    ) auto;
+  gap: 10px;
   align-items: center;
 }
 .transform-builder select,
@@ -1225,7 +1235,9 @@ kbd.hint {
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
-  transition: transform 180ms ease, background 180ms ease;
+  transition:
+    transform 180ms ease,
+    background 180ms ease;
 }
 .add-rule-button:hover,
 .export-metrics-button:hover {
@@ -1237,8 +1249,8 @@ kbd.hint {
   flex-wrap: wrap;
   gap: 7px;
   min-height: 29px;
-  margin-top: 14px;
-  padding-top: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
   border-top: 1px solid var(--line);
 }
 .empty-note {
@@ -1271,7 +1283,7 @@ kbd.hint {
 }
 .metrics-panel .metric-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 7px;
+  gap: 10px;
 }
 .metrics-panel .metric-card {
   padding: 9px;
@@ -1293,11 +1305,17 @@ kbd.hint {
 }
 .project-insights-grid {
   display: grid;
-  grid-template-columns: minmax(150px, 0.75fr) minmax(150px, 0.75fr) minmax(280px, 1.5fr);
+  grid-template-columns: minmax(150px, 0.75fr) minmax(150px, 0.75fr) minmax(
+      280px,
+      1.5fr
+    );
   gap: 16px;
 }
 .project-insights-grid:has(.cloud-panel) {
-  grid-template-columns: minmax(150px, 0.7fr) minmax(150px, 0.7fr) minmax(280px, 1.25fr) minmax(240px, 1fr);
+  grid-template-columns: minmax(150px, 0.7fr) minmax(150px, 0.7fr) minmax(
+      280px,
+      1.25fr
+    ) minmax(240px, 1fr);
 }
 .health-status {
   display: flex;
@@ -1371,6 +1389,9 @@ kbd.hint {
   .transform-builder,
   .projects-panel .project-controls {
     grid-template-columns: 1fr;
+  }
+  .tools-grid .workspace-panel {
+    padding: 16px;
   }
   .transform-builder .add-rule-button {
     width: 100%;
