@@ -141,6 +141,31 @@ export default function HomePage() {
           <small>CANONICAL / VERIFIED</small>
         </div>
       </section>
+      <section className="value-strip" aria-label="Converter benefits">
+        <div className="value-item">
+          <span className="value-number">01</span>
+          <div>
+            <strong>Private by default</strong>
+            <span>Your data stays in the browser unless you choose sync.</span>
+          </div>
+        </div>
+        <div className="value-item">
+          <span className="value-number">02</span>
+          <div>
+            <strong>Verified output</strong>
+            <span>Validate, compare, and check round-trip fidelity.</span>
+          </div>
+        </div>
+        <div className="value-item">
+          <span className="value-number">03</span>
+          <div>
+            <strong>Built for real work</strong>
+            <span>
+              Save projects, apply transforms, and batch-convert files.
+            </span>
+          </div>
+        </div>
+      </section>
       <ConverterPane />
       <section className="seo-guide" aria-labelledby="guide-title">
         <div>

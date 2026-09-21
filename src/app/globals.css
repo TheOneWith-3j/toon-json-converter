@@ -181,6 +181,47 @@ button {
   justify-content: space-between;
   gap: 30px;
 }
+.value-strip {
+  position: relative;
+  z-index: 1;
+  width: min(1440px, calc(100% - 40px));
+  margin: 0 auto 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.value-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 15px 18px;
+}
+.value-item + .value-item {
+  border-left: 1px solid var(--line);
+}
+.value-number {
+  flex: none;
+  color: var(--accent-strong);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.value-item div {
+  display: grid;
+  gap: 4px;
+}
+.value-item strong {
+  font-size: 12px;
+  font-weight: 760;
+}
+.value-item div span {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
 .eyebrow {
   margin: 0 0 12px;
   color: var(--accent-strong);
@@ -393,7 +434,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 15px 17px;
+  padding: 16px 18px;
   border-bottom: 1px solid var(--line);
 }
 .editor-card-header h2 {
@@ -693,8 +734,11 @@ button {
 .workspace-shell {
   gap: var(--space-5);
 }
+.workspace-shell > * {
+  min-width: 0;
+}
 .workspace-toolbar {
-  padding: var(--space-3);
+  padding: 14px;
 }
 .toolbar-row {
   display: flex;
@@ -976,6 +1020,14 @@ kbd.hint {
 }
 
 @media (max-width: 700px) {
+  .value-strip {
+    width: min(100% - 24px, 1440px);
+    grid-template-columns: 1fr;
+  }
+  .value-item + .value-item {
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
   .toolbar-divider {
     display: none;
   }
