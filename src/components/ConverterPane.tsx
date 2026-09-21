@@ -1288,8 +1288,8 @@ function InfoPanel({
   className?: string;
 }) {
   return (
-    <div className={`workspace-panel p-4 ${className ?? ""}`}>
-      <h3 className="mb-2 text-sm font-semibold">{title}</h3>
+    <div className={`workspace-panel p-6 ${className ?? ""}`}>
+      <h3 className="mb-4 text-sm font-semibold">{title}</h3>
       {children}
     </div>
   );

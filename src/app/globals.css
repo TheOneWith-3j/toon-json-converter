@@ -571,7 +571,8 @@ button {
 }
 .project-controls input {
   width: 100%;
-  padding: 8px 10px;
+  min-height: 44px;
+  padding: 10px 14px;
   font-size: 12px;
 }
 .editor-card .cm-editor {
