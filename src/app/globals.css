@@ -1200,10 +1200,9 @@ kbd.hint {
 }
 .transform-builder {
   display: grid;
-  grid-template-columns: minmax(125px, 0.8fr) minmax(145px, 1fr) minmax(
-      145px,
-      1fr
-    ) auto;
+  grid-template-columns:
+    minmax(125px, 0.8fr) minmax(145px, 1fr) minmax(145px, 1fr)
+    auto;
   gap: 10px;
   align-items: center;
 }
@@ -1310,18 +1309,19 @@ kbd.hint {
       1.5fr
     );
   gap: 16px;
+  align-items: start;
 }
 .project-insights-grid:has(.cloud-panel) {
-  grid-template-columns: minmax(150px, 0.7fr) minmax(150px, 0.7fr) minmax(
-      280px,
-      1.25fr
-    ) minmax(240px, 1fr);
+  grid-template-columns:
+    minmax(150px, 0.7fr) minmax(150px, 0.7fr) minmax(280px, 1.25fr)
+    minmax(240px, 1fr);
 }
 .health-status {
   display: flex;
   align-items: center;
   gap: 11px;
-  min-height: 52px;
+  min-height: 0;
+  padding: 6px 0 4px;
 }
 .health-orb {
   width: 12px;
