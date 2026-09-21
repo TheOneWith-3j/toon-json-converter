@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import ConverterPane from "../components/ConverterPane";
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://toon-json-converter.vercel.app";
+
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
@@ -11,8 +14,8 @@ const structuredData = {
   operatingSystem: "Web",
   description:
     "Online JSON to TOON converter and TOON to JSON converter for developers, with validation, diffing, schema inspection, local project storage, and batch conversion.",
-  url: "https://toon-json-converter.vercel.app",
-  image: "https://toon-json-converter.vercel.app/icon-512.png",
+  url: siteUrl,
+  image: `${siteUrl}/icon-512.png`,
   browserRequirements: "Requires modern web browser",
   offers: {
     "@type": "Offer",
