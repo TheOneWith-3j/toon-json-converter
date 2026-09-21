@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 128" role="img" aria-labelledby="title desc">
+  <title id="title">TOONWORKS</title>
+  <desc id="desc">TOONWORKS structured data studio logo.</desc>
+  <rect width="128" height="128" rx="30" fill="#d8fa58"/>
+  <path d="M38 39h52M38 64h52M38 89h30" fill="none" stroke="#172225" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="91" cy="89" r="9" fill="#1e6f65"/>
+  <text x="158" y="61" fill="#edf4ee" font-family="Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="5">TOONWORKS</text>
+  <text x="160" y="91" fill="#9ca9a9" font-family="Arial, sans-serif" font-size="14" letter-spacing="2">STRUCTURED DATA STUDIO</text>
+</svg>

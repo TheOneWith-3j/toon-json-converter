@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import ConverterPane from "../components/ConverterPane";
 
 const siteUrl =
@@ -102,9 +103,14 @@ export default function HomePage() {
       />
       <header className="app-header">
         <div className="brand-lockup">
-          <div className="brand-mark" aria-hidden="true">
-            <span />
-          </div>
+          <Image
+            className="brand-mark"
+            src="/brand-mark.svg"
+            alt=""
+            aria-hidden="true"
+            width={34}
+            height={34}
+          />
           <div>
             <p className="brand-name">TOONWORKS</p>
             <p className="brand-subtitle">structured data studio</p>
