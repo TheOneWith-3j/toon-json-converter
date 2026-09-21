@@ -38,6 +38,7 @@ import {
   sortProjectsByUpdatedAt,
 } from "../firebase/merge";
 import CodeMirrorEditor from "./CodeMirrorEditor";
+import { MetricsPanel, TransformRulesPanel } from "./WorkspacePanels";
 
 type Direction = "auto" | "json-toon" | "toon-json";
 type MobilePane = "input" | "output";
@@ -985,112 +986,21 @@ export default function ConverterPane() {
         </InfoPanel>
       )}
 
-      <div className="secondary-tools tools-grid">
-        <InfoPanel title="Transform rules" className="transform-panel">
-          <p className="panel-description">
-            Shape your data before conversion. Add rules in plain language and
-            remove them anytime.
-          </p>
-          <div className="transform-builder">
-            <select
-              value={ruleKind}
-              onChange={(event) => {
-                setRuleKind(event.target.value as RuleKind);
-                setRuleValue("");
-              }}
-              className="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
-            >
-              <option value="rename">Rename key</option>
-              <option value="prefix">Prefix value</option>
-              <option value="filter">Filter include</option>
-              <option value="map">Map value</option>
-            </select>
-            <input
-              placeholder="Path, e.g. users.name"
-              value={rulePath}
-              onChange={(event) => setRulePath(event.target.value)}
-              className="min-w-40 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
-            />
-            {ruleKind === "map" ? (
-              <select
-                value={ruleValue}
-                onChange={(event) => setRuleValue(event.target.value)}
-                className="rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
-              >
-                <option value="">Choose mapping</option>
-                <option value="uppercase">Uppercase</option>
-                <option value="lowercase">Lowercase</option>
-                <option value="number">To number</option>
-                <option value="string">To string</option>
-                <option value="boolean">To boolean</option>
-                <option value="null">Set null</option>
-              </select>
-            ) : (
-              <input
-                placeholder={
-                  ruleKind === "filter"
-                    ? "Allowed values, comma-separated"
-                    : "New key or prefix"
-                }
-                value={ruleValue}
-                onChange={(event) => setRuleValue(event.target.value)}
-                className="min-w-40 rounded border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700"
-              />
-            )}
-            <button
-              onClick={addTransformRule}
-              className="add-rule-button"
-            >
-              + Add rule
-            </button>
-          </div>
-          <div className="rule-list">
-            {rules.length === 0 ? (
-              <span className="empty-note">No rules added yet</span>
-            ) : (
-              rules.map((rule, index) => (
-                <button
-                  key={`${rule.path}-${index}`}
-                  onClick={() =>
-                    setRules(rules.filter((_, ruleIndex) => ruleIndex !== index))
-                  }
-                  className="rule-chip"
-                  title="Remove this rule"
-                >
-                  <span>{rule.type}</span>
-                  {rule.path}
-                  <b>×</b>
-                </button>
-              ))
-            )}
-          </div>
-        </InfoPanel>
-        <InfoPanel title="Metrics" className="metrics-panel">
-          <p className="panel-description">
-            A private snapshot of your work in this browser.
-          </p>
-          <div className="metric-grid">
-            <Metric
-              label="Conversions"
-              value={metrics?.totalConversions ?? 0}
-            />
-            <Metric label="Success" value={metrics?.successCount ?? 0} />
-            <Metric label="Failures" value={metrics?.failureCount ?? 0} />
-            <Metric
-              label="Avg out"
-              value={`${Math.round(metrics?.avgOutputSize ?? 0)}b`}
-            />
-          </div>
-          <p className="mt-3 text-xs text-neutral-500">
-            Stored locally in this browser
-          </p>
-          <button
-            onClick={exportMetrics}
-            className="export-metrics-button"
-          >
-            Export local metrics
-          </button>
-        </InfoPanel>
+      <div className="secondary-tools workspace-secondary-grid">
+        <TransformRulesPanel
+          ruleKind={ruleKind}
+          rulePath={rulePath}
+          ruleValue={ruleValue}
+          rules={rules}
+          setRuleKind={setRuleKind}
+          setRulePath={setRulePath}
+          setRuleValue={setRuleValue}
+          addTransformRule={addTransformRule}
+          removeTransformRule={(index) =>
+            setRules(rules.filter((_, ruleIndex) => ruleIndex !== index))
+          }
+        />
+        <MetricsPanel metrics={metrics} exportMetrics={exportMetrics} />
       </div>
 
       <div
@@ -1196,25 +1106,37 @@ export default function ConverterPane() {
               <p className="health-copy">
                 {validation?.valid
                   ? "Valid input detected"
-                  : (validation?.error?.message ?? "Enter JSON or TOON to begin")}
+                  : (validation?.error?.message ??
+                    "Enter JSON or TOON to begin")}
               </p>
             </div>
           </div>
         </InfoPanel>
         <InfoPanel title="Round trip" className="health-panel">
           <div className="health-status">
-            <span className={`health-orb ${roundTrip ? "is-verified" : "is-idle"}`} />
+            <span
+              className={`health-orb ${roundTrip ? "is-verified" : "is-idle"}`}
+            />
             <div>
               <p className="health-value">
-                {roundTrip === null ? "Not checked" : roundTrip ? "Verified" : "Mismatch"}
+                {roundTrip === null
+                  ? "Not checked"
+                  : roundTrip
+                    ? "Verified"
+                    : "Mismatch"}
               </p>
               <p className="health-copy">
-                {roundTrip ? "Output preserves the source data" : "Convert to verify fidelity"}
+                {roundTrip
+                  ? "Output preserves the source data"
+                  : "Convert to verify fidelity"}
               </p>
             </div>
           </div>
         </InfoPanel>
-        <InfoPanel title={`Local projects (${projects.length})`} className="projects-panel">
+        <InfoPanel
+          title={`Local projects (${projects.length})`}
+          className="projects-panel"
+        >
           <div className="project-controls">
             <input
               value={projectName}
@@ -1366,8 +1288,8 @@ function InfoPanel({
   className?: string;
 }) {
   return (
-    <div className={`workspace-panel p-4 ${className ?? ""}`}>
-      <h3 className="mb-2 text-sm font-semibold">{title}</h3>
+    <div className={`workspace-panel p-6 ${className ?? ""}`}>
+      <h3 className="mb-4 text-sm font-semibold">{title}</h3>
       {children}
     </div>
   );

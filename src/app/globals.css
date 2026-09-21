@@ -571,7 +571,8 @@ button {
 }
 .project-controls input {
   width: 100%;
-  padding: 8px 10px;
+  min-height: 44px;
+  padding: 10px 14px;
   font-size: 12px;
 }
 .editor-card .cm-editor {
@@ -1178,6 +1179,12 @@ kbd.hint {
   gap: 20px;
   align-items: start;
 }
+.workspace-secondary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(260px, 0.85fr);
+  gap: 20px;
+  align-items: start;
+}
 .transform-panel,
 .metrics-panel,
 .health-panel,
@@ -1303,6 +1310,7 @@ kbd.hint {
   font-weight: 600;
 }
 .project-insights-grid {
+  order: 6;
   display: grid;
   grid-template-columns: minmax(220px, 0.85fr) minmax(220px, 0.85fr) minmax(
       360px,
@@ -1380,6 +1388,7 @@ kbd.hint {
 
 @media (max-width: 980px) {
   .tools-grid,
+  .workspace-secondary-grid,
   .project-insights-grid,
   .project-insights-grid:has(.cloud-panel) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1402,6 +1411,7 @@ kbd.hint {
     width: 100%;
   }
   .tools-grid,
+  .workspace-secondary-grid,
   .project-insights-grid,
   .project-insights-grid:has(.cloud-panel) {
     grid-template-columns: 1fr;
