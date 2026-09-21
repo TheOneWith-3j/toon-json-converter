@@ -26,7 +26,7 @@ A feature-rich, production-quality, fully serverless converter for JSON ↔ TOON
 
 ## Tech Stack
 
-- Next.js (static export)
+- Next.js App Router with Vercel deployment
 - TypeScript (strict mode)
 - Tailwind CSS
 - CodeMirror 6

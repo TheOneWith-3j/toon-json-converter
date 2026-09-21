@@ -6,11 +6,10 @@
 - `npm run dev`
 - `npx playwright install chromium` before the first local E2E run
 
-## Static Export
+## Production Build
 
 - `npm run build`
-- `npm run build` writes the static site to `out/` via `next.config.ts`.
-- `npm run preview` serves the exported site locally.
+- `npm run preview` starts the production Next.js server locally.
 
 ## Validation
 
@@ -18,19 +17,13 @@
 
 ## Deployment
 
-### GitHub Pages
+### Vercel
 
-- Push to `main`, deploys via GitHub Actions
-- See `.github/workflows/deploy.yml`
-
-### Cloudflare Pages
-
-- Deploy `out/` directory
-
-### Firebase Hosting
-
-- Deploy `out/` directory
-- Optional Firebase sync: add config to `.env`
+- Import the repository into Vercel.
+- Use the default Next.js build settings.
+- Set `NEXT_PUBLIC_SITE_URL` to the production Vercel URL.
+- Add the `NEXT_PUBLIC_FIREBASE_*` values only when cloud sync is enabled.
+- GitHub Actions validates pushes and pull requests; Vercel handles deployment.
 
 ## Optional Firebase Sync
 

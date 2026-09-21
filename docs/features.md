@@ -48,4 +48,4 @@
 
 ## CI/CD
 
-- GitHub Actions, deploy to Pages
+- GitHub Actions validation with Vercel deployments
