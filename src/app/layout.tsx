@@ -27,6 +27,9 @@ export const metadata: Metadata = {
   },
   description:
     "Convert JSON to TOON and TOON to JSON online for free. Validate, format, compare, and batch-convert structured data privately in your browser.",
+  verification: {
+    google: "TInilOVkYcXDQGINEQsangbkYq2NMwHe_vBk7HRKS3o",
+  },
   applicationName: "TOONWORKS",
   keywords: [
     "JSON to TOON",
