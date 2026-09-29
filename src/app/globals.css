@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.js";
 
 :root {
   --background: #f4f1ea;
@@ -54,6 +53,17 @@ select {
 }
 button {
   cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 3px;
 }
 
 .app-shell {
@@ -367,6 +377,10 @@ button {
   transform: translateY(-1px);
   box-shadow: 0 8px 18px rgba(29, 80, 74, 0.12);
 }
+.workspace-toolbar label:focus-within {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 3px;
+}
 .workspace-toolbar button:first-of-type {
   background: var(--foreground);
   color: var(--background);
@@ -647,6 +661,21 @@ button {
   box-shadow: inset 3px 0 0 #ef4444;
 }
 
+@media (max-width: 900px) {
+  .editor-grid {
+    display: block;
+  }
+  .split-handle {
+    display: none;
+  }
+  .mobile-tabs {
+    display: grid;
+  }
+  .editor-card.mobile-hidden {
+    display: none;
+  }
+}
+
 @media (max-width: 700px) {
   .app-header,
   .page-intro,
@@ -670,14 +699,7 @@ button {
   .workspace-shell {
     padding-bottom: 36px;
   }
-  .editor-grid {
-    display: block;
-  }
-  .split-handle {
-    display: none;
-  }
   .mobile-tabs {
-    display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 6px;
     margin-bottom: 10px;
@@ -699,9 +721,6 @@ button {
   .mobile-tabs button.active {
     color: var(--background);
     background: var(--foreground);
-  }
-  .editor-card.mobile-hidden {
-    display: none;
   }
   .drop-zone {
     align-items: flex-start;
@@ -843,9 +862,7 @@ button {
 .workspace-toolbar select,
 .workspace-toolbar button,
 .workspace-toolbar label,
-.workspace-toolbar input,
-.workspace-panel input,
-.workspace-panel button {
+.workspace-toolbar input {
   min-height: 36px;
   padding: 0 14px;
   font-size: 13px;
@@ -857,14 +874,6 @@ button {
   gap: 6px;
   font-weight: 620;
   cursor: pointer;
-}
-.workspace-panel button {
-  min-height: 30px;
-  padding: 0 10px;
-  font-size: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
 }
 .workspace-toolbar button:hover:not(:disabled),
 .workspace-toolbar label:hover,
@@ -1170,250 +1179,4 @@ kbd.hint {
 }
 .footer-links a:hover {
   color: var(--accent-strong);
-}
-
-/* Middle workflow: give controls room to breathe and make state scannable. */
-.tools-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.65fr) minmax(260px, 0.85fr);
-  gap: 20px;
-  align-items: start;
-}
-.workspace-secondary-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.65fr) minmax(260px, 0.85fr);
-  gap: 20px;
-  align-items: start;
-}
-.transform-panel,
-.metrics-panel,
-.health-panel,
-.projects-panel,
-.cloud-panel {
-  min-width: 0;
-}
-.panel-description {
-  max-width: 58ch;
-  margin: 0 0 18px;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.5;
-}
-.tools-grid .workspace-panel {
-  padding: 20px;
-}
-.tools-grid .workspace-panel h3 {
-  margin: 0 0 10px;
-}
-.transform-builder {
-  display: grid;
-  grid-template-columns:
-    minmax(125px, 0.8fr) minmax(145px, 1fr) minmax(145px, 1fr)
-    auto;
-  gap: 10px;
-  align-items: center;
-}
-.transform-builder select,
-.transform-builder input {
-  width: 100%;
-  min-width: 0;
-  min-height: 36px;
-  padding: 0 11px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  color: var(--foreground);
-  background: var(--surface-solid);
-  font-size: 12px;
-}
-.transform-builder select:focus,
-.transform-builder input:focus {
-  outline: 2px solid var(--accent-strong);
-  outline-offset: 1px;
-}
-.add-rule-button,
-.export-metrics-button {
-  min-height: 36px;
-  padding: 0 13px;
-  border: 1px solid var(--foreground);
-  border-radius: 9px;
-  color: var(--background);
-  background: var(--foreground);
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-  transition:
-    transform 180ms ease,
-    background 180ms ease;
-}
-.add-rule-button:hover,
-.export-metrics-button:hover {
-  background: var(--accent-strong);
-  transform: translateY(-1px);
-}
-.rule-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  min-height: 29px;
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
-}
-.empty-note {
-  color: var(--muted);
-  font-size: 11px;
-}
-.rule-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 27px;
-  padding: 0 8px;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  color: var(--foreground);
-  background: color-mix(in srgb, var(--surface-solid) 82%, var(--accent) 18%);
-  font-size: 11px;
-}
-.rule-chip span {
-  color: var(--accent-strong);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.rule-chip b {
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 400;
-}
-.metrics-panel .metric-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-.metrics-panel .metric-card {
-  padding: 9px;
-}
-.metrics-panel .metric-card strong {
-  font-size: 16px;
-}
-.metrics-panel > p:not(.panel-description) {
-  margin: 12px 0 0;
-  color: var(--muted);
-  font-size: 11px;
-}
-.export-metrics-button {
-  margin-top: 12px;
-  border-color: var(--line);
-  color: var(--foreground);
-  background: transparent;
-  font-weight: 600;
-}
-.project-insights-grid {
-  order: 6;
-  display: grid;
-  grid-template-columns: minmax(220px, 0.85fr) minmax(220px, 0.85fr) minmax(
-      360px,
-      1.35fr
-    );
-  grid-auto-rows: max-content;
-  gap: 16px;
-  align-items: start;
-}
-.project-insights-grid:has(.cloud-panel) {
-  grid-template-columns:
-    minmax(220px, 0.85fr) minmax(220px, 0.85fr) minmax(360px, 1.25fr)
-    minmax(320px, 1.1fr);
-}
-.project-insights-grid > .workspace-panel {
-  align-self: start;
-  height: fit-content;
-}
-.health-status {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  min-height: 0;
-  padding: 6px 0 4px;
-}
-.health-orb {
-  width: 12px;
-  height: 12px;
-  flex: none;
-  border-radius: 50%;
-  background: var(--line);
-  box-shadow: 0 0 0 6px color-mix(in srgb, var(--line) 30%, transparent);
-}
-.health-orb.is-json,
-.health-orb.is-toon,
-.health-orb.is-verified {
-  background: #62c9a1;
-  box-shadow: 0 0 0 6px rgba(98, 201, 161, 0.14);
-}
-.health-orb.is-unknown,
-.health-orb.is-idle {
-  background: var(--accent);
-  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent);
-}
-.health-value {
-  margin: 0;
-  color: var(--foreground);
-  font-size: 15px;
-  font-weight: 760;
-  text-transform: capitalize;
-}
-.health-copy {
-  margin: 4px 0 0;
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.4;
-}
-.projects-panel .project-controls {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-}
-.projects-panel .project-controls input {
-  min-height: 34px;
-}
-.cloud-panel > p:first-of-type {
-  margin: 0 0 5px;
-  font-weight: 700;
-}
-.cloud-panel > button {
-  margin-top: 7px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-@media (max-width: 980px) {
-  .tools-grid,
-  .workspace-secondary-grid,
-  .project-insights-grid,
-  .project-insights-grid:has(.cloud-panel) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .transform-panel,
-  .projects-panel,
-  .cloud-panel {
-    grid-column: 1 / -1;
-  }
-}
-@media (max-width: 700px) {
-  .transform-builder,
-  .projects-panel .project-controls {
-    grid-template-columns: 1fr;
-  }
-  .tools-grid .workspace-panel {
-    padding: 16px;
-  }
-  .transform-builder .add-rule-button {
-    width: 100%;
-  }
-  .tools-grid,
-  .workspace-secondary-grid,
-  .project-insights-grid,
-  .project-insights-grid:has(.cloud-panel) {
-    grid-template-columns: 1fr;
-  }
 }

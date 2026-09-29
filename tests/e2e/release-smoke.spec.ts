@@ -21,6 +21,13 @@ test("converts a preset and verifies the comparison workflow", async ({ page }) 
   await expect(page.getByText("Size delta")).toBeVisible();
   await expect(page.getByRole("button", { name: "Download" })).toBeEnabled();
   await expect(page.getByRole("button", { name: "Copy" })).toBeEnabled();
+  const analytics = page
+    .locator("section.workspace-panel")
+    .filter({ has: page.getByRole("heading", { name: "Usage analytics" }) });
+  await expect(analytics.getByText("100%", { exact: true })).toBeVisible();
+  await expect(analytics.getByText("successful", { exact: false })).toBeVisible();
+  await analytics.getByText("Direction and size details").click();
+  await expect(analytics.getByText("JSON to TOON", { exact: true })).toBeVisible();
 });
 
 test("saves and searches a local project", async ({ page }) => {
@@ -55,14 +62,34 @@ test("reports valid and invalid batch files", async ({ page }) => {
 });
 
 test("toggles theme and exposes mobile editor tabs", async ({ page, isMobile }) => {
+  const editor = page.locator(".cm-editor").first();
+  const initialEditorBackground = await editor.evaluate(
+    (element) => getComputedStyle(element).backgroundColor,
+  );
   await page.getByRole("button", { name: "Toggle color theme" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect
+    .poll(() => editor.evaluate((element) => getComputedStyle(element).backgroundColor))
+    .not.toBe(initialEditorBackground);
 
   if (isMobile) {
     await expect(page.getByRole("tab", { name: "Input" })).toBeVisible();
     await page.getByRole("tab", { name: "Output" }).click();
     await expect(page.getByRole("tab", { name: "Output" })).toHaveAttribute("aria-selected", "true");
   }
+});
+
+test("uses editor tabs at tablet widths", async ({ page }) => {
+  await page.setViewportSize({ width: 800, height: 900 });
+  await expect(page.getByRole("tab", { name: "Input" })).toBeVisible();
+  await expect(page.locator(".editor-card.is-output")).toBeHidden();
+
+  await page.getByRole("tab", { name: "Output" }).click();
+  await expect(page.locator(".editor-card.is-output")).toBeVisible();
+  await expect(page.locator(".editor-card.is-input")).toBeHidden();
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+    .toBe(true);
 });
 
 test("typing a full multi-line JSON document lands character-for-character", async ({

@@ -38,7 +38,13 @@ import {
   sortProjectsByUpdatedAt,
 } from "../firebase/merge";
 import CodeMirrorEditor from "./CodeMirrorEditor";
-import { MetricsPanel, TransformRulesPanel } from "./WorkspacePanels";
+import {
+  CloudProjectsPanel,
+  HealthPanel,
+  LocalProjectsPanel,
+  MetricsPanel,
+  TransformRulesPanel,
+} from "./WorkspacePanels";
 
 type Direction = "auto" | "json-toon" | "toon-json";
 type MobilePane = "input" | "output";
@@ -228,7 +234,7 @@ function IconCloud() {
   );
 }
 
-export default function ConverterPane() {
+export default function ConverterPane({ darkMode }: { darkMode: boolean }) {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [outputType, setOutputType] = useState<"json" | "toon">("json");
@@ -765,6 +771,7 @@ export default function ConverterPane() {
             </select>
             <select
               defaultValue=""
+              aria-label="Load a preset"
               onChange={(event) => {
                 const value = presets[event.target.value];
                 if (value) {
@@ -849,11 +856,12 @@ export default function ConverterPane() {
             >
               Batch ZIP
               <input
+                aria-label="Choose files for batch conversion"
                 type="file"
                 multiple
                 accept=".json,.toon,text/plain,application/json"
                 onChange={convertBatch}
-                className="hidden"
+                className="sr-only"
               />
             </label>
             <label
@@ -862,10 +870,11 @@ export default function ConverterPane() {
             >
               Import
               <input
+                aria-label="Import project file"
                 type="file"
                 accept="application/json"
                 onChange={importProject}
-                className="hidden"
+                className="sr-only"
               />
             </label>
             <button
@@ -986,7 +995,7 @@ export default function ConverterPane() {
         </InfoPanel>
       )}
 
-      <div className="secondary-tools workspace-secondary-grid">
+      <div className="secondary-tools order-5 grid items-start gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(260px,.85fr)]">
         <TransformRulesPanel
           ruleKind={ruleKind}
           rulePath={rulePath}
@@ -1034,6 +1043,7 @@ export default function ConverterPane() {
           line={validation?.error?.line}
           mobileHidden={mobilePane !== "input"}
           tone="input"
+          darkMode={darkMode}
         />
         <div
           className="split-handle"
@@ -1055,6 +1065,7 @@ export default function ConverterPane() {
           readOnly
           mobileHidden={mobilePane !== "output"}
           tone="output"
+          darkMode={darkMode}
         />
       </div>
 
@@ -1097,109 +1108,51 @@ export default function ConverterPane() {
         </div>
       )}
 
-      <div className="project-insights-grid">
-        <InfoPanel title="Input health" className="health-panel">
-          <div className="health-status">
-            <span className={`health-orb is-${detected}`} />
-            <div>
-              <p className="health-value">{detected}</p>
-              <p className="health-copy">
-                {validation?.valid
-                  ? "Valid input detected"
-                  : (validation?.error?.message ??
-                    "Enter JSON or TOON to begin")}
-              </p>
-            </div>
-          </div>
-        </InfoPanel>
-        <InfoPanel title="Round trip" className="health-panel">
-          <div className="health-status">
-            <span
-              className={`health-orb ${roundTrip ? "is-verified" : "is-idle"}`}
-            />
-            <div>
-              <p className="health-value">
-                {roundTrip === null
-                  ? "Not checked"
-                  : roundTrip
-                    ? "Verified"
-                    : "Mismatch"}
-              </p>
-              <p className="health-copy">
-                {roundTrip
-                  ? "Output preserves the source data"
-                  : "Convert to verify fidelity"}
-              </p>
-            </div>
-          </div>
-        </InfoPanel>
-        <InfoPanel
-          title={`Local projects (${projects.length})`}
-          className="projects-panel"
-        >
-          <div className="project-controls">
-            <input
-              value={projectName}
-              onChange={(event) => setProjectName(event.target.value)}
-              placeholder="Project name"
-            />
-            <input
-              value={projectSearch}
-              onChange={(event) => setProjectSearch(event.target.value)}
-              placeholder="Search projects"
-            />
-          </div>
-          {projects.length === 0 ? (
-            <p className="text-xs text-neutral-500">No saved projects</p>
-          ) : filteredProjects.length === 0 ? (
-            <p className="text-xs text-neutral-500">
-              No projects match this search
-            </p>
-          ) : (
-            filteredProjects.slice(0, 6).map((project, index) => (
-              <div
-                className="project-row"
-                style={{ "--row-index": index } as React.CSSProperties}
-                key={project.id}
-              >
-                <button
-                  onClick={() => loadProject(project)}
-                  className="truncate text-left text-sm hover:underline"
-                >
-                  {project.name}
-                </button>
-                <button
-                  onClick={() => void removeLocalProject(project.id)}
-                  className="text-xs text-neutral-500 hover:underline"
-                >
-                  Delete
-                </button>
-              </div>
-            ))
-          )}
-        </InfoPanel>
+      <div className="project-insights-layout order-6 grid grid-cols-1 items-start gap-4 lg:grid-cols-2 xl:grid-cols-[minmax(220px,.85fr)_minmax(220px,.85fr)_minmax(360px,1.25fr)_minmax(320px,1.1fr)]">
+        <HealthPanel
+          title="Input health"
+          value={detected}
+          description={
+            validation?.valid
+              ? "Valid input detected"
+              : (validation?.error?.message ?? "Enter JSON or TOON to begin")
+          }
+          tone={detected === "unknown" ? "unknown" : "valid"}
+        />
+        <HealthPanel
+          title="Round trip"
+          value={
+            roundTrip === null
+              ? "Not checked"
+              : roundTrip
+                ? "Verified"
+                : "Mismatch"
+          }
+          description={
+            roundTrip
+              ? "Output preserves the source data"
+              : "Convert to verify fidelity"
+          }
+          tone={
+            roundTrip === null ? "idle" : roundTrip ? "verified" : "mismatch"
+          }
+        />
+        <LocalProjectsPanel
+          projects={projects}
+          filteredProjects={filteredProjects}
+          projectName={projectName}
+          projectSearch={projectSearch}
+          setProjectName={setProjectName}
+          setProjectSearch={setProjectSearch}
+          loadProject={loadProject}
+          removeProject={(projectId) => void removeLocalProject(projectId)}
+        />
         {syncAvailable && (
-          <InfoPanel title="Cloud sync" className="cloud-panel">
-            <p className="text-sm">{cloudUser ?? "Not connected"}</p>
-            <p className="text-xs text-neutral-500">
-              {cloudUser
-                ? "Sync the active project or pull newer cloud projects into this browser."
-                : "Connect Google to sync projects across browsers."}
-            </p>
-            {cloudUser && cloudProjects.length === 0 ? (
-              <p className="text-xs text-neutral-500">No cloud projects yet</p>
-            ) : (
-              cloudProjects.slice(0, 3).map((project) => (
-                <button
-                  key={`${project.id}-${project.updatedAt}`}
-                  onClick={() => loadProject(project)}
-                  className="block w-full truncate text-left text-sm hover:underline"
-                >
-                  {project.name}
-                </button>
-              ))
-            )}
-          </InfoPanel>
+          <CloudProjectsPanel
+            cloudUser={cloudUser}
+            cloudProjects={cloudProjects}
+            loadProject={loadProject}
+          />
         )}
       </div>
 
@@ -1249,6 +1202,7 @@ function EditorPanel({
   line,
   mobileHidden,
   tone,
+  darkMode,
 }: {
   title: string;
   value: string;
@@ -1258,6 +1212,7 @@ function EditorPanel({
   line?: number;
   mobileHidden?: boolean;
   tone: "input" | "output";
+  darkMode: boolean;
 }) {
   return (
     <div
@@ -1271,6 +1226,7 @@ function EditorPanel({
         value={value}
         onChange={onChange}
         readOnly={readOnly}
+        darkMode={darkMode}
         language={language}
         highlightLine={line}
       />

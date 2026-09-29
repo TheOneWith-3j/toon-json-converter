@@ -9,7 +9,11 @@ import {
   StateField,
 } from "@codemirror/state";
 import { json as jsonLang } from "@codemirror/lang-json";
-import { StreamLanguage } from "@codemirror/language";
+import {
+  defaultHighlightStyle,
+  StreamLanguage,
+  syntaxHighlighting,
+} from "@codemirror/language";
 import { oneDark } from "@codemirror/theme-one-dark";
 
 const toonLang = StreamLanguage.define({
@@ -30,9 +34,33 @@ interface CodeMirrorEditorProps {
   value: string;
   onChange?: (value: string) => void;
   readOnly?: boolean;
+  darkMode?: boolean;
   language?: "json" | "toon";
   highlightLine?: number;
 }
+
+const lightTheme = [
+  syntaxHighlighting(defaultHighlightStyle),
+  EditorView.theme({
+    "&": {
+      backgroundColor: "var(--surface-solid)",
+      color: "var(--foreground)",
+    },
+    ".cm-content": { caretColor: "var(--foreground)" },
+    ".cm-cursor": { borderLeftColor: "var(--foreground)" },
+    ".cm-gutters": {
+      backgroundColor: "var(--surface-solid)",
+      color: "var(--muted)",
+      border: "none",
+    },
+    ".cm-activeLine": {
+      backgroundColor: "color-mix(in srgb, var(--accent) 16%, transparent)",
+    },
+    ".cm-activeLineGutter": {
+      backgroundColor: "color-mix(in srgb, var(--accent) 16%, transparent)",
+    },
+  }),
+];
 
 const highlightLineEffect = StateEffect.define<number | null>();
 const highlightedLine = StateField.define<ReturnType<typeof Decoration.set>>({
@@ -64,6 +92,7 @@ export default function CodeMirrorEditor({
   value,
   onChange,
   readOnly,
+  darkMode = false,
   language = "json",
   highlightLine,
 }: CodeMirrorEditorProps) {
@@ -73,6 +102,7 @@ export default function CodeMirrorEditor({
   const valueRef = useRef(value);
   const [languageCompartment] = useState(() => new Compartment());
   const [editableCompartment] = useState(() => new Compartment());
+  const [themeCompartment] = useState(() => new Compartment());
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -83,7 +113,7 @@ export default function CodeMirrorEditor({
   useEffect(() => {
     if (!editorRef.current) return;
     const extensions = [
-      oneDark,
+      themeCompartment.of(darkMode ? oneDark : lightTheme),
       highlightedLine,
       editableCompartment.of(EditorView.editable.of(!readOnly)),
       languageCompartment.of(language === "json" ? jsonLang() : toonLang),
@@ -106,6 +136,12 @@ export default function CodeMirrorEditor({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    viewRef.current?.dispatch({
+      effects: themeCompartment.reconfigure(darkMode ? oneDark : lightTheme),
+    });
+  }, [darkMode, themeCompartment]);
 
   // Reconfigure language/editable in place so cursor position and focus survive live changes.
   useEffect(() => {
