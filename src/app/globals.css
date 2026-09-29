@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.js";
 
 :root {
   --background: #f4f1ea;
@@ -54,6 +53,17 @@ select {
 }
 button {
   cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 3px;
 }
 
 .app-shell {
@@ -367,6 +377,10 @@ button {
   transform: translateY(-1px);
   box-shadow: 0 8px 18px rgba(29, 80, 74, 0.12);
 }
+.workspace-toolbar label:focus-within {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 3px;
+}
 .workspace-toolbar button:first-of-type {
   background: var(--foreground);
   color: var(--background);
@@ -647,6 +661,21 @@ button {
   box-shadow: inset 3px 0 0 #ef4444;
 }
 
+@media (max-width: 900px) {
+  .editor-grid {
+    display: block;
+  }
+  .split-handle {
+    display: none;
+  }
+  .mobile-tabs {
+    display: grid;
+  }
+  .editor-card.mobile-hidden {
+    display: none;
+  }
+}
+
 @media (max-width: 700px) {
   .app-header,
   .page-intro,
@@ -670,14 +699,7 @@ button {
   .workspace-shell {
     padding-bottom: 36px;
   }
-  .editor-grid {
-    display: block;
-  }
-  .split-handle {
-    display: none;
-  }
   .mobile-tabs {
-    display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 6px;
     margin-bottom: 10px;
@@ -699,9 +721,6 @@ button {
   .mobile-tabs button.active {
     color: var(--background);
     background: var(--foreground);
-  }
-  .editor-card.mobile-hidden {
-    display: none;
   }
   .drop-zone {
     align-items: flex-start;
@@ -843,9 +862,7 @@ button {
 .workspace-toolbar select,
 .workspace-toolbar button,
 .workspace-toolbar label,
-.workspace-toolbar input,
-.workspace-panel input,
-.workspace-panel button {
+.workspace-toolbar input {
   min-height: 36px;
   padding: 0 14px;
   font-size: 13px;
@@ -857,14 +874,6 @@ button {
   gap: 6px;
   font-weight: 620;
   cursor: pointer;
-}
-.workspace-panel button {
-  min-height: 30px;
-  padding: 0 10px;
-  font-size: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
 }
 .workspace-toolbar button:hover:not(:disabled),
 .workspace-toolbar label:hover,

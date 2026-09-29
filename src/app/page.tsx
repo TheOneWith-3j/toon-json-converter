@@ -172,7 +172,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      <ConverterPane />
+      <ConverterPane darkMode={dark} />
       <section className="seo-guide" aria-labelledby="guide-title">
         <div>
           <p className="eyebrow">CONVERSION GUIDE / 02</p>

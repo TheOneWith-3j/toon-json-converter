@@ -57,10 +57,10 @@ export function TransformRulesPanel({
     <Panel
       title="Transform rules"
       description="Shape data before conversion. Add rules in plain language and remove them anytime."
-      className="lg:col-span-2"
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[minmax(125px,.8fr)_minmax(145px,1fr)_minmax(145px,1fr)_auto]">
         <select
+          aria-label="Transform type"
           value={ruleKind}
           onChange={(event) => {
             setRuleKind(event.target.value as RuleKind);
@@ -74,6 +74,7 @@ export function TransformRulesPanel({
           <option value="map">Map value</option>
         </select>
         <input
+          aria-label="Transform path"
           value={rulePath}
           onChange={(event) => setRulePath(event.target.value)}
           placeholder="Path, e.g. users.name"
@@ -81,6 +82,7 @@ export function TransformRulesPanel({
         />
         {ruleKind === "map" ? (
           <select
+            aria-label="Mapping function"
             value={ruleValue}
             onChange={(event) => setRuleValue(event.target.value)}
             className="min-h-11 min-w-0 rounded-lg border border-[var(--line)] bg-[var(--surface-solid)] px-4 py-2 text-xs text-[var(--foreground)]"
@@ -95,6 +97,9 @@ export function TransformRulesPanel({
           </select>
         ) : (
           <input
+            aria-label={
+              ruleKind === "filter" ? "Allowed values" : "Transform value"
+            }
             value={ruleValue}
             onChange={(event) => setRuleValue(event.target.value)}
             placeholder={
@@ -145,40 +150,125 @@ export function MetricsPanel({
   metrics: Metrics;
   exportMetrics: () => void;
 }) {
-  const cards = [
-    ["Conversions", metrics.totalConversions],
-    ["Success", metrics.successCount],
-    ["Failures", metrics.failureCount],
-    ["Avg out", `${Math.round(metrics.avgOutputSize)}b`],
-  ] as const;
+  const total = metrics.totalConversions;
+  const successRate = total
+    ? Math.round((metrics.successCount / total) * 100)
+    : 0;
+  const directedTotal = metrics.jsonToonCount + metrics.toonJsonCount;
+  const jsonToonShare = directedTotal
+    ? (metrics.jsonToonCount / directedTotal) * 100
+    : 0;
   return (
     <Panel
-      title="Metrics"
-      description="A private snapshot of your work in this browser."
+      title="Usage analytics"
+      description="Conversion activity stored locally in this browser."
     >
-      <div className="grid grid-cols-2 gap-3">
-        {cards.map(([label, value]) => (
-          <div
-            key={label}
-            className="min-w-0 rounded-xl border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface-solid)_82%,var(--accent)_18%)] p-3"
-          >
-            <span className="block text-[9px] font-extrabold uppercase tracking-[0.08em] text-[var(--muted)]">
-              {label}
-            </span>
-            <strong className="mt-2 block text-base leading-none text-[var(--foreground)]">
-              {value}
-            </strong>
-          </div>
-        ))}
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <span className="block text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--muted)]">
+            Conversions
+          </span>
+          <strong className="mt-1 block text-4xl font-bold leading-none text-[var(--foreground)]">
+            {total}
+          </strong>
+        </div>
+        <div className="text-right">
+          <span className="block text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--muted)]">
+            Success rate
+          </span>
+          <strong className="mt-1 block text-2xl font-bold leading-none text-[var(--accent-strong)]">
+            {total ? `${successRate}%` : "—"}
+          </strong>
+        </div>
       </div>
-      <p className="mt-4 text-[11px] text-[var(--muted)]">
-        Stored locally in this browser
-      </p>
+      <div
+        className="mt-4 h-2.5 overflow-hidden rounded-full bg-[var(--line)]"
+        role="progressbar"
+        aria-label="Successful conversion rate"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={successRate}
+      >
+        <div
+          className="h-full rounded-full bg-[var(--accent-strong)] transition-[width] duration-300"
+          style={{ width: `${successRate}%` }}
+        />
+      </div>
+      <div className="mt-2 flex justify-between gap-3 text-[11px] text-[var(--muted)]">
+        <span>{metrics.successCount} successful</span>
+        <span>{metrics.failureCount} failed</span>
+      </div>
+
+      <details className="mt-5 border-t border-[var(--line)] pt-1">
+        <summary className="cursor-pointer rounded-md py-3 text-xs font-semibold text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-strong)]">
+          Direction and size details
+        </summary>
+        <div className="grid gap-5 pb-2 sm:grid-cols-2">
+          <section aria-labelledby="direction-split-title" className="min-w-0">
+            <h4
+              id="direction-split-title"
+              className="m-0 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--muted)]"
+            >
+              Direction split
+            </h4>
+            <div className="mt-3 grid gap-1">
+              <div className="flex items-center justify-between gap-3 border-b border-[var(--line)] py-2">
+                <span className="text-xs text-[var(--muted)]">JSON to TOON</span>
+                <strong className="text-sm text-[var(--foreground)]">
+                  {metrics.jsonToonCount}
+                </strong>
+              </div>
+              <div className="flex items-center justify-between gap-3 border-b border-[var(--line)] py-2">
+                <span className="text-xs text-[var(--muted)]">TOON to JSON</span>
+                <strong className="text-sm text-[var(--foreground)]">
+                  {metrics.toonJsonCount}
+                </strong>
+              </div>
+            </div>
+            <div
+              className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-[var(--line)]"
+              role="img"
+              aria-label={`${metrics.jsonToonCount} JSON to TOON conversions and ${metrics.toonJsonCount} TOON to JSON conversions`}
+            >
+              <span
+                className="bg-[var(--accent-strong)]"
+                style={{ width: `${jsonToonShare}%` }}
+              />
+              <span className="flex-1 bg-[var(--cyan)]" />
+            </div>
+          </section>
+          <section aria-labelledby="average-size-title" className="min-w-0">
+            <h4
+              id="average-size-title"
+              className="m-0 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--muted)]"
+            >
+              Average size
+            </h4>
+            <p className="mb-0 mt-2 text-[10px] leading-snug text-[var(--muted)]">
+              Characters per conversion
+            </p>
+            <div className="mt-3 grid gap-1">
+              <div className="flex items-center justify-between gap-3 border-b border-[var(--line)] py-2">
+                <span className="text-xs text-[var(--muted)]">Input</span>
+                <strong className="text-xs text-[var(--foreground)]">
+                  {Math.round(metrics.avgInputSize).toLocaleString()} chars
+                </strong>
+              </div>
+              <div className="flex items-center justify-between gap-3 border-b border-[var(--line)] py-2">
+                <span className="text-xs text-[var(--muted)]">Output</span>
+                <strong className="text-xs text-[var(--foreground)]">
+                  {Math.round(metrics.avgOutputSize).toLocaleString()} chars
+                </strong>
+              </div>
+            </div>
+          </section>
+        </div>
+      </details>
       <button
         onClick={exportMetrics}
-        className="mt-4 min-h-10 rounded-lg border border-[var(--line)] px-4 py-2 text-xs font-semibold text-[var(--foreground)]"
+        className="mt-5 min-h-11 rounded-lg border border-[var(--line)] px-4 py-2 text-xs font-semibold text-[var(--foreground)] transition hover:border-[var(--accent-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-strong)]"
       >
-        Export local metrics
+        Export analytics data
       </button>
     </Panel>
   );
@@ -249,12 +339,14 @@ export function LocalProjectsPanel({
     >
       <div className="grid gap-3 sm:grid-cols-2">
         <input
+          aria-label="Project name"
           value={projectName}
           onChange={(event) => setProjectName(event.target.value)}
           placeholder="Project name"
           className="min-h-11 min-w-0 rounded-lg border border-[var(--line)] bg-[var(--surface-solid)] px-4 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)]"
         />
         <input
+          aria-label="Search local projects"
           value={projectSearch}
           onChange={(event) => setProjectSearch(event.target.value)}
           placeholder="Search projects"

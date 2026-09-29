@@ -234,7 +234,7 @@ function IconCloud() {
   );
 }
 
-export default function ConverterPane() {
+export default function ConverterPane({ darkMode }: { darkMode: boolean }) {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [outputType, setOutputType] = useState<"json" | "toon">("json");
@@ -771,6 +771,7 @@ export default function ConverterPane() {
             </select>
             <select
               defaultValue=""
+              aria-label="Load a preset"
               onChange={(event) => {
                 const value = presets[event.target.value];
                 if (value) {
@@ -855,11 +856,12 @@ export default function ConverterPane() {
             >
               Batch ZIP
               <input
+                aria-label="Choose files for batch conversion"
                 type="file"
                 multiple
                 accept=".json,.toon,text/plain,application/json"
                 onChange={convertBatch}
-                className="hidden"
+                className="sr-only"
               />
             </label>
             <label
@@ -868,10 +870,11 @@ export default function ConverterPane() {
             >
               Import
               <input
+                aria-label="Import project file"
                 type="file"
                 accept="application/json"
                 onChange={importProject}
-                className="hidden"
+                className="sr-only"
               />
             </label>
             <button
@@ -1040,6 +1043,7 @@ export default function ConverterPane() {
           line={validation?.error?.line}
           mobileHidden={mobilePane !== "input"}
           tone="input"
+          darkMode={darkMode}
         />
         <div
           className="split-handle"
@@ -1061,6 +1065,7 @@ export default function ConverterPane() {
           readOnly
           mobileHidden={mobilePane !== "output"}
           tone="output"
+          darkMode={darkMode}
         />
       </div>
 
@@ -1197,6 +1202,7 @@ function EditorPanel({
   line,
   mobileHidden,
   tone,
+  darkMode,
 }: {
   title: string;
   value: string;
@@ -1206,6 +1212,7 @@ function EditorPanel({
   line?: number;
   mobileHidden?: boolean;
   tone: "input" | "output";
+  darkMode: boolean;
 }) {
   return (
     <div
@@ -1219,6 +1226,7 @@ function EditorPanel({
         value={value}
         onChange={onChange}
         readOnly={readOnly}
+        darkMode={darkMode}
         language={language}
         highlightLine={line}
       />
