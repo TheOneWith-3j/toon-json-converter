@@ -1,5 +1,6 @@
 import type { TransformRule } from "../core/transforms/transformEngine";
 import type { Metrics } from "../metrics/metrics";
+import type { Project } from "../storage/indexeddb/projects";
 
 type RuleKind = TransformRule["type"];
 
@@ -179,6 +180,158 @@ export function MetricsPanel({
       >
         Export local metrics
       </button>
+    </Panel>
+  );
+}
+
+export function HealthPanel({
+  title,
+  value,
+  description,
+  tone,
+}: {
+  title: string;
+  value: string;
+  description: string;
+  tone: "valid" | "unknown" | "verified" | "idle" | "mismatch";
+}) {
+  const indicatorClass = {
+    valid: "bg-emerald-400 shadow-[0_0_0_6px_rgba(52,211,153,.14)]",
+    unknown:
+      "bg-[var(--accent)] shadow-[0_0_0_6px_color-mix(in_srgb,var(--accent)_18%,transparent)]",
+    verified: "bg-emerald-400 shadow-[0_0_0_6px_rgba(52,211,153,.14)]",
+    idle: "bg-[var(--line)] shadow-[0_0_0_6px_color-mix(in_srgb,var(--line)_30%,transparent)]",
+    mismatch: "bg-red-400 shadow-[0_0_0_6px_rgba(248,113,113,.14)]",
+  }[tone];
+
+  return (
+    <Panel title={title} className="min-[981px]:self-start">
+      <div className="flex min-h-[64px] items-center gap-4 py-2">
+        <span
+          className={`h-3.5 w-3.5 shrink-0 rounded-full ${indicatorClass}`}
+        />
+        <div className="min-w-0">
+          <p className="m-0 text-base font-bold capitalize leading-tight text-[var(--foreground)]">
+            {value}
+          </p>
+          <p className="mb-0 mt-2 text-xs leading-relaxed text-[var(--muted)]">
+            {description}
+          </p>
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+export function LocalProjectsPanel({
+  projects,
+  filteredProjects,
+  projectName,
+  projectSearch,
+  setProjectName,
+  setProjectSearch,
+  loadProject,
+  removeProject,
+}: {
+  projects: Project[];
+  filteredProjects: Project[];
+  projectName: string;
+  projectSearch: string;
+  setProjectName: (value: string) => void;
+  setProjectSearch: (value: string) => void;
+  loadProject: (project: Project) => void;
+  removeProject: (projectId: IDBValidKey | undefined) => void;
+}) {
+  return (
+    <Panel
+      title={`Local projects (${projects.length})`}
+      className="lg:col-span-2 xl:col-span-1"
+    >
+      <div className="grid gap-3 sm:grid-cols-2">
+        <input
+          value={projectName}
+          onChange={(event) => setProjectName(event.target.value)}
+          placeholder="Project name"
+          className="min-h-11 min-w-0 rounded-lg border border-[var(--line)] bg-[var(--surface-solid)] px-4 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)]"
+        />
+        <input
+          value={projectSearch}
+          onChange={(event) => setProjectSearch(event.target.value)}
+          placeholder="Search projects"
+          className="min-h-11 min-w-0 rounded-lg border border-[var(--line)] bg-[var(--surface-solid)] px-4 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)]"
+        />
+      </div>
+      {projects.length === 0 ? (
+        <p className="mb-0 mt-4 text-xs text-[var(--muted)]">
+          No saved projects
+        </p>
+      ) : filteredProjects.length === 0 ? (
+        <p className="mb-0 mt-4 text-xs text-[var(--muted)]">
+          No projects match this search
+        </p>
+      ) : (
+        <div className="mt-4 grid gap-1">
+          {filteredProjects.slice(0, 6).map((project) => (
+            <div
+              key={project.id}
+              className="flex min-w-0 items-center justify-between gap-4 border-t border-[var(--line)] py-3"
+            >
+              <button
+                onClick={() => loadProject(project)}
+                className="min-w-0 truncate py-1 text-left text-sm text-[var(--foreground)] hover:underline"
+              >
+                {project.name}
+              </button>
+              <button
+                onClick={() => removeProject(project.id)}
+                className="shrink-0 rounded-md px-3 py-2 text-xs text-[var(--muted)] hover:bg-[color-mix(in_srgb,var(--surface-solid)_80%,var(--accent)_20%)] hover:text-[var(--foreground)]"
+              >
+                Delete
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </Panel>
+  );
+}
+
+export function CloudProjectsPanel({
+  cloudUser,
+  cloudProjects,
+  loadProject,
+}: {
+  cloudUser: string | null;
+  cloudProjects: Project[];
+  loadProject: (project: Project) => void;
+}) {
+  return (
+    <Panel title="Cloud sync" className="lg:col-span-2 xl:col-span-1">
+      <p className="mb-0 mt-1 text-sm font-bold text-[var(--foreground)]">
+        {cloudUser ?? "Not connected"}
+      </p>
+      <p className="mb-0 mt-2 text-xs leading-relaxed text-[var(--muted)]">
+        {cloudUser
+          ? "Sync the active project or pull newer cloud projects into this browser."
+          : "Connect Google to sync projects across browsers."}
+      </p>
+      {cloudUser && cloudProjects.length === 0 ? (
+        <p className="mb-0 mt-4 text-xs text-[var(--muted)]">
+          No cloud projects yet
+        </p>
+      ) : (
+        <div className="mt-4 grid gap-1">
+          {cloudProjects.slice(0, 3).map((project) => (
+            <button
+              key={`${project.id}-${project.updatedAt}`}
+              onClick={() => loadProject(project)}
+              className="min-w-0 truncate border-t border-[var(--line)] py-3 text-left text-sm text-[var(--foreground)] hover:underline"
+            >
+              {project.name}
+            </button>
+          ))}
+        </div>
+      )}
     </Panel>
   );
 }
