@@ -129,27 +129,27 @@ export default function HomePage() {
           <small>CANONICAL / VERIFIED</small>
         </div>
       </section>
-      <section className="value-strip" aria-label="Converter benefits">
+      <section className="value-strip" aria-label="Conversion workflow">
         <div className="value-item">
           <span className="value-number">01</span>
           <div>
-            <strong>Private by default</strong>
-            <span>Your data stays in the browser unless you choose sync.</span>
+            <strong>Paste or drop data</strong>
+            <span>Start with JSON or TOON; format detection is automatic.</span>
           </div>
         </div>
         <div className="value-item">
           <span className="value-number">02</span>
           <div>
-            <strong>Verified output</strong>
-            <span>Validate, compare, and check round-trip fidelity.</span>
+            <strong>Convert either way</strong>
+            <span>Apply transforms, then encode or decode in your browser.</span>
           </div>
         </div>
         <div className="value-item">
           <span className="value-number">03</span>
           <div>
-            <strong>Built for real work</strong>
+            <strong>Inspect and save</strong>
             <span>
-              Save projects, apply transforms, and batch-convert files.
+              Check the result, compare sizes, and keep projects locally.
             </span>
           </div>
         </div>
@@ -254,6 +254,86 @@ export default function HomePage() {
             </a>
           </div>
         </div>
+        <section className="geek-section" aria-labelledby="geek-title">
+          <div className="geek-heading">
+            <div>
+              <p className="eyebrow">UNDER THE HOOD / 04</p>
+              <h3 id="geek-title">Geeky internals</h3>
+              <p>
+                Follow one conversion through the browser, then see where
+                project data goes when you save or opt into sync.
+              </p>
+            </div>
+            <a className="geek-diagram-link" href="/repository-architecture.html">
+              Explore the full architecture <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+          <ol className="geek-pipeline" aria-label="Client-side conversion stages">
+            <li>
+              <span className="pipeline-number">01</span>
+              <strong>Detect</strong>
+              <small>JSON or TOON</small>
+            </li>
+            <li>
+              <span className="pipeline-number">02</span>
+              <strong>Transform</strong>
+              <small>Optional rules</small>
+            </li>
+            <li>
+              <span className="pipeline-number">03</span>
+              <strong>Encode / decode</strong>
+              <small>Official TOON SDK</small>
+            </li>
+            <li>
+              <span className="pipeline-number">04</span>
+              <strong>Verify</strong>
+              <small>Round-trip check</small>
+            </li>
+            <li>
+              <span className="pipeline-number">05</span>
+              <strong>Inspect</strong>
+              <small>Schema + output</small>
+            </li>
+          </ol>
+          <div className="geek-grid">
+            <article>
+              <span className="geek-index">BROWSER / HOT PATH</span>
+              <h4>Conversion never leaves the client</h4>
+              <p>
+                <code>src/components/ConverterPane</code> calls the pure helpers
+                in <code>src/core</code>, then
+                <code> src/core/codec/toon.ts</code> delegates to
+                <code> @toon-format/toon</code>. The app infers a schema and
+                checks round-trip fidelity before reporting success.
+              </p>
+            </article>
+            <article>
+              <span className="geek-index">PERSISTENCE / LOCAL</span>
+              <h4>Projects and metrics are separate</h4>
+              <p>
+                Saved projects live in IndexedDB through
+                <code> src/storage/indexeddb</code>; counters live in
+                localStorage through <code>src/metrics</code>. Both are
+                browser-local and neither needs an account.
+              </p>
+            </article>
+            <article>
+              <span className="geek-index">PERSISTENCE / OPT-IN</span>
+              <h4>Cloud sync is a side path</h4>
+              <p>
+                When configured and signed in, <code>src/firebase</code> uses
+                Firebase Auth and Firestore for project sync. Cloud pulls merge
+                with local projects by update time; IndexedDB remains available
+                as the local workspace.
+              </p>
+            </article>
+          </div>
+          <p className="geek-footnote">
+            Offline detail: the production app registers a service worker that
+            caches successful GET responses. It serves the app shell; it does
+            not run the conversion pipeline.
+          </p>
+        </section>
       </section>
       <SiteFooter />
     </main>
