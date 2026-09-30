@@ -1,0 +1,406 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-09-30T18:31:22.253Z",
+  "specification": {
+    "path": "/Users/jash/Personal/Projects/toon-json-converter/.archify/architecture-repository-details-20260930-142847/candidate.json",
+    "sha256": "f264e6addea3beb5b21b8f26c27334be9eedac05a7c2fb11af990cbdfd81d95b",
+    "bytes": 6440
+  },
+  "artifact": {
+    "path": "/Users/jash/Personal/Projects/toon-json-converter/public/repository-architecture.html",
+    "sha256": "73eec15a9e1d4be6cdbef8e8c0c65e121b710ed628da381a1f0d99a9d8f7cb18",
+    "bytes": 773765
+  },
+  "stages": {
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "/opt/homebrew/Cellar/node/26.8.2/bin/node",
+        "/Users/jash/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "architecture",
+        "/Users/jash/Personal/Projects/toon-json-converter/.archify/architecture-repository-details-20260930-142847/candidate.json",
+        "/Users/jash/Personal/Projects/toon-json-converter/public/repository-architecture.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "/Users/jash/Personal/Projects/toon-json-converter",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "f264e6addea3beb5b21b8f26c27334be9eedac05a7c2fb11af990cbdfd81d95b",
+          "bytes": 6440
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 340,
+      "command": [
+        "/opt/homebrew/Cellar/node/26.8.2/bin/node",
+        "/Users/jash/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "architecture",
+        "/Users/jash/Personal/Projects/toon-json-converter/.archify/architecture-repository-details-20260930-142847/candidate.json",
+        "/Users/jash/Personal/Projects/toon-json-converter/public/repository-architecture.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "/Users/jash/Personal/Projects/toon-json-converter",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "13db94f2-f6d3-457c-80fc-f056a191bfcf",
+        "ok": true,
+        "command": "deliver",
+        "type": "architecture",
+        "input": "/Users/jash/Personal/Projects/toon-json-converter/.archify/architecture-repository-details-20260930-142847/candidate.json",
+        "output": "/Users/jash/Personal/Projects/toon-json-converter/public/repository-architecture.html",
+        "specification": {
+          "sha256": "f264e6addea3beb5b21b8f26c27334be9eedac05a7c2fb11af990cbdfd81d95b",
+          "bytes": 6440
+        },
+        "artifact": {
+          "sha256": "73eec15a9e1d4be6cdbef8e8c0c65e121b710ed628da381a1f0d99a9d8f7cb18",
+          "bytes": 773765
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        },
+        "evidence": {
+          "verified": true,
+          "repository": "https://github.com/TheOneWith-3j/toon-json-converter",
+          "revision": "cac1a650bcc303a8edc2f376b9bc5aec3f27d46c",
+          "references": 21
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      }
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 166,
+      "command": [
+        "/opt/homebrew/Cellar/node/26.8.2/bin/node",
+        "/Users/jash/.agents/skills/archify/bin/archify.mjs",
+        "check",
+        "/Users/jash/Personal/Projects/toon-json-converter/public/repository-architecture.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "/Users/jash/Personal/Projects/toon-json-converter/public/repository-architecture.html",
+        "artifact": {
+          "sha256": "73eec15a9e1d4be6cdbef8e8c0c65e121b710ed628da381a1f0d99a9d8f7cb18",
+          "bytes": 773765
+        },
+        "checks": [
+          {
+            "name": "single_svg",
+            "ok": true,
+            "details": [
+              "found 1 <svg> block(s)"
+            ]
+          },
+          {
+            "name": "finite_svg",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "orthogonal_arrows",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "label_route_clearance",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_crossings",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_corridors",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "container_border_runs",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "route_rhythm",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "legend_clearance",
+            "ok": true,
+            "details": []
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "showcase",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 0
+          },
+          "metrics": {
+            "properCrossings": 0,
+            "resolvedCrossovers": 0,
+            "ambiguousCorridors": 0,
+            "arrowheadCollisions": 0,
+            "containerBorderRuns": 0,
+            "labelRouteClearanceIssues": 0,
+            "labelCanvasOverflowIssues": 0,
+            "minLabelRouteClearance": 20,
+            "desktopReadabilityIssues": 0,
+            "viewportHeightIssues": 0,
+            "minProjectedNodeTextPx": 6.486746987951808,
+            "maxBends": 3,
+            "routesOverSuggestedBends": 2,
+            "maxStretch": 1.156,
+            "routesOverSuggestedStretch": 0,
+            "minSegmentPx": 24,
+            "minInteriorSegmentPx": 71,
+            "shortSegmentCount": 0,
+            "shortEndpointSegmentCount": 0,
+            "shortInteriorSegmentCount": 0,
+            "microSegmentCount": 0
+          },
+          "suggestedLimits": {
+            "bendsPerRelationship": 2,
+            "stretch": 1.35,
+            "segmentPx": 16,
+            "microSegmentPx": 8
+          },
+          "routeReview": {
+            "crossings": [],
+            "detours": [
+              {
+                "relationship": {
+                  "id": "firebase-to-services",
+                  "from": "firebase-adapter",
+                  "to": "firebase-services",
+                  "label": "authenticated Firestore I/O",
+                  "collectionIndex": 9,
+                  "artifactIndex": 10
+                },
+                "bends": 3,
+                "stretch": 1
+              },
+              {
+                "relationship": {
+                  "id": "app-to-assets",
+                  "from": "app-router",
+                  "to": "pwa-assets",
+                  "label": "registers worker / serves assets",
+                  "collectionIndex": 10,
+                  "artifactIndex": 11
+                },
+                "bends": 3,
+                "stretch": 1.156
+              }
+            ]
+          },
+          "leadingSpace": {
+            "measured": true,
+            "emptyTopPx": 80,
+            "emptyTopRatio": 0.102,
+            "occupiedTop": 80,
+            "viewBoxTop": 0,
+            "canvasHeight": 786,
+            "typicalNodeHeight": 68,
+            "reviewSuggested": false
+          },
+          "desktopReadability": {
+            "budgetBasis": "recognized-declared-wide",
+            "readerContract": "declared-wide-v1",
+            "availableDiagramWidth": 1346,
+            "actualBudgetPx": 1346,
+            "actualReaderWidth": 1376,
+            "desiredReaderWidth": 1586.25,
+            "viewportCap": 1376,
+            "limit": "viewport-cap",
+            "requestedTargetPx": 7.5,
+            "requestedTargetMet": false,
+            "hardFloorPx": 6,
+            "hardFloorMet": true,
+            "minimumOwner": {
+              "kind": "edge",
+              "id": "browser-to-app",
+              "from": "browser",
+              "to": "app-router"
+            },
+            "minimumSourceTextPx": 8,
+            "minimumProjectedTextPx": 6.486746987951808,
+            "semanticTextCount": 32
+          },
+          "issues": []
+        },
+        "provenance": "current",
+        "deliveryReceiptId": "13db94f2-f6d3-457c-80fc-f056a191bfcf"
+      }
+    },
+    "browser-check": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": 18,
+      "command": [
+        "/opt/homebrew/Cellar/node/26.8.2/bin/node",
+        "/Users/jash/.agents/skills/archify/bin/archify.mjs",
+        "browser-check",
+        "/Users/jash/Personal/Projects/toon-json-converter/public/repository-architecture.html",
+        "--json",
+        "--require-provenance"
+      ],
+      "execution": "in-process",
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "browser-check",
+        "evidenceKind": "automated-browser",
+        "status": "fail",
+        "visualReview": "not-requested",
+        "provenance": "current",
+        "deliveryReceiptId": "13db94f2-f6d3-457c-80fc-f056a191bfcf",
+        "artifact": {
+          "path": "/Users/jash/Personal/Projects/toon-json-converter/public/repository-architecture.html",
+          "sha256": "73eec15a9e1d4be6cdbef8e8c0c65e121b710ed628da381a1f0d99a9d8f7cb18",
+          "bytes": 773765
+        },
+        "state": {
+          "detail": "read",
+          "motion": "still"
+        },
+        "chrome": {
+          "status": "available",
+          "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        },
+        "diagnostics": [
+          {
+            "code": "viewer/browser-check-runtime",
+            "severity": "error",
+            "message": "browser-check could not complete its Chrome inspection.",
+            "subject": {
+              "artifact": "/Users/jash/Personal/Projects/toon-json-converter/public/repository-architecture.html"
+            },
+            "evidence": {
+              "reason": "Chrome DevTools read pipe failed: stream ended\nChrome process: still running.\nChrome transport: Node v26.8.2, libuv 1.52.1, darwin; pid=33807, exitCode=null, signalCode=null.\nChrome read pipe: readable=false, ended=true, destroyed=false, receivedBytes=0, messages=0, bufferedBytes=0.\nChrome write pipe: writable=true, ended=false, destroyed=false, completedWrites=1, writtenBytes=50, bufferedBytes=0."
+            },
+            "supportedFixes": [
+              "resolve the reported Chrome inspection error, then rerun browser-check"
+            ]
+          }
+        ],
+        "containment": {
+          "status": "fail",
+          "policy": "fit-or-reader-declared-readable-vertical-scroll",
+          "viewports": []
+        },
+        "themeStates": {
+          "status": "fail",
+          "viewports": []
+        },
+        "readability": {
+          "status": "fail",
+          "minimumProjectedNodeTextPx": 6,
+          "viewports": []
+        },
+        "viewerChrome": {
+          "status": "fail",
+          "viewports": []
+        },
+        "captures": {
+          "status": "not-requested",
+          "screenshots": [],
+          "contactSheet": null
+        },
+        "sidecars": {
+          "receipt": "repository-architecture.browser-check.json",
+          "files": []
+        },
+        "error": "Chrome DevTools read pipe failed: stream ended\nChrome process: still running.\nChrome transport: Node v26.8.2, libuv 1.52.1, darwin; pid=33807, exitCode=null, signalCode=null.\nChrome read pipe: readable=false, ended=true, destroyed=false, receivedBytes=0, messages=0, bufferedBytes=0.\nChrome write pipe: writable=true, ended=false, destroyed=false, completedWrites=1, writtenBytes=50, bufferedBytes=0."
+      }
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "viewer/browser-check-runtime",
+      "severity": "error",
+      "message": "browser-check could not complete its Chrome inspection.",
+      "subject": {
+        "artifact": "/Users/jash/Personal/Projects/toon-json-converter/public/repository-architecture.html"
+      },
+      "evidence": {
+        "reason": "Chrome DevTools read pipe failed: stream ended\nChrome process: still running.\nChrome transport: Node v26.8.2, libuv 1.52.1, darwin; pid=33807, exitCode=null, signalCode=null.\nChrome read pipe: readable=false, ended=true, destroyed=false, receivedBytes=0, messages=0, bufferedBytes=0.\nChrome write pipe: writable=true, ended=false, destroyed=false, completedWrites=1, writtenBytes=50, bufferedBytes=0."
+      },
+      "supportedFixes": [
+        "resolve the reported Chrome inspection error, then rerun browser-check"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "/Users/jash/Personal/Projects/toon-json-converter/public/repository-architecture.finalize.json",
+    "summaryReceipt": "/Users/jash/Personal/Projects/toon-json-converter/public/repository-architecture.finalize-summary.json",
+    "browserCheckReceipt": "/Users/jash/Personal/Projects/toon-json-converter/public/repository-architecture.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "browser-check",
+  "finishedAt": "2026-09-30T18:31:22.903Z",
+  "durationMs": 649,
+  "update": {
+    "status": "unavailable",
+    "installedVersion": null,
+    "availableVersion": null,
+    "releaseNotes": null,
+    "checkedAt": null,
+    "source": null,
+    "noticeRequired": false,
+    "noticeText": null,
+    "reason": "cache-unavailable"
+  }
+}

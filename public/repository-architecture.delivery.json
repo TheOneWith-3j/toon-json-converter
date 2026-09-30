@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "13db94f2-f6d3-457c-80fc-f056a191bfcf",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/Users/jash/Personal/Projects/toon-json-converter/.archify/architecture-repository-details-20260930-142847/candidate.json",
+  "output": "/Users/jash/Personal/Projects/toon-json-converter/public/repository-architecture.html",
+  "specification": {
+    "sha256": "f264e6addea3beb5b21b8f26c27334be9eedac05a7c2fb11af990cbdfd81d95b",
+    "bytes": 6440
+  },
+  "artifact": {
+    "sha256": "73eec15a9e1d4be6cdbef8e8c0c65e121b710ed628da381a1f0d99a9d8f7cb18",
+    "bytes": 773765
+  }
+}

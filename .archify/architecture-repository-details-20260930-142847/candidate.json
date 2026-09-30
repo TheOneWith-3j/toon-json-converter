@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "TOONWORKS — Architecture Under the Hood",
+    "output": "public/repository-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/TheOneWith-3j/toon-json-converter.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "cac1a650bcc303a8edc2f376b9bc5aec3f27d46c"
+    }
+  },
+  "components": [
+    { "id": "browser", "type": "external", "label": "User / Browser", "sublabel": "Conversion executes client-side", "pos": [60, 270], "size": [160, 68] },
+    { "id": "app-router", "type": "frontend", "label": "src/app", "sublabel": "Next.js App Router + page shell", "sources": [{ "path": "src/app/page.tsx", "line": 1, "end_line": 7 }, { "path": "src/app/layout.tsx", "line": 1, "end_line": 7 }], "pos": [290, 270], "size": [185, 68] },
+    { "id": "ui-components", "type": "frontend", "label": "src/components", "sublabel": "ConverterPane + workspace panels", "sources": [{ "path": "src/components/ConverterPane.tsx", "line": 3, "end_line": 48 }], "pos": [545, 270], "size": [205, 68] },
+    { "id": "conversion-core", "type": "backend", "label": "src/core · conversion", "sublabel": "Detect → transform → encode/decode", "sources": [{ "path": "src/components/ConverterPane.tsx", "line": 302, "end_line": 329 }, { "path": "src/core/detect.ts", "line": 6, "end_line": 21 }, { "path": "src/core/transforms/transformEngine.ts", "line": 12, "end_line": 42 }], "pos": [825, 270], "size": [230, 68] },
+    { "id": "codec-adapter", "type": "backend", "label": "src/core/codec/toon.ts", "sublabel": "Thin encode/decode adapter", "sources": [{ "path": "src/core/codec/toon.ts", "line": 1, "end_line": 30 }], "pos": [1130, 270], "size": [215, 68] },
+    { "id": "toon-sdk", "type": "backend", "label": "@toon-format/toon", "sublabel": "Official TypeScript codec", "sources": [{ "path": "src/core/codec/toon.ts", "line": 2, "end_line": 20 }], "pos": [1420, 270], "size": [200, 68] },
+    { "id": "core-utilities", "type": "backend", "label": "src/core · analysis tools", "sublabel": "Validation · schema · diff · batch", "sources": [{ "path": "src/core/validate.ts", "line": 14, "end_line": 38 }, { "path": "src/core/schema/inferSchema.ts", "line": 9, "end_line": 46 }, { "path": "src/components/ConverterPane.tsx", "line": 5, "end_line": 15 }], "pos": [825, 510], "size": [240, 68] },
+    { "id": "indexeddb", "type": "database", "label": "src/storage/indexeddb", "sublabel": "Saved projects · browser-local", "sources": [{ "path": "src/storage/indexeddb/projects.ts", "line": 1, "end_line": 43 }, { "path": "src/components/ConverterPane.tsx", "line": 450, "end_line": 466 }], "pos": [430, 510], "size": [220, 68] },
+    { "id": "metrics", "type": "database", "label": "src/metrics", "sublabel": "Counters in localStorage", "sources": [{ "path": "src/metrics/metrics.ts", "line": 34, "end_line": 66 }, { "path": "src/components/ConverterPane.tsx", "line": 331, "end_line": 340 }], "pos": [690, 650], "size": [220, 68] },
+    { "id": "firebase-adapter", "type": "cloud", "label": "src/firebase", "sublabel": "Feature-flagged auth + project sync", "sources": [{ "path": "src/firebase/sync.ts", "line": 8, "end_line": 40 }, { "path": "src/components/ConverterPane.tsx", "line": 524, "end_line": 535 }, { "path": "src/firebase/firebase.ts", "line": 7, "end_line": 26 }], "pos": [1085, 510], "size": [240, 68] },
+    { "id": "firebase-services", "type": "cloud", "label": "Firebase Auth + Firestore", "sublabel": "Google sign-in · per-user projects", "sources": [{ "path": "src/firebase/sync.ts", "line": 18, "end_line": 50 }], "pos": [1300, 650], "size": [240, 68] },
+    { "id": "pwa-assets", "type": "frontend", "label": "public/ + service worker", "sublabel": "Static assets · GET response cache", "sources": [{ "path": "src/app/ServiceWorkerRegistration.tsx", "line": 5, "end_line": 20 }, { "path": "public/service-worker.js", "line": 1, "end_line": 26 }], "pos": [290, 80], "size": [245, 68] }
+  ],
+  "connections": [
+    { "id": "browser-to-app", "from": "browser", "to": "app-router", "label": "loads app", "variant": "emphasis" },
+    { "id": "app-to-ui", "from": "app-router", "to": "ui-components", "label": "renders" },
+    { "id": "ui-to-core", "from": "ui-components", "to": "conversion-core" },
+    { "id": "core-to-adapter", "from": "conversion-core", "to": "codec-adapter" },
+    { "id": "adapter-to-sdk", "from": "codec-adapter", "to": "toon-sdk" },
+    { "id": "ui-to-analysis", "from": "ui-components", "to": "core-utilities", "label": "validate · inspect · batch", "fromSide": "bottom", "toSide": "top" },
+    { "id": "ui-to-indexeddb", "from": "ui-components", "to": "indexeddb", "label": "save / load / delete projects", "fromSide": "bottom", "toSide": "top" },
+    { "id": "ui-to-metrics", "from": "ui-components", "to": "metrics", "label": "record conversion metrics", "fromSide": "bottom", "toSide": "top" },
+    { "id": "ui-to-firebase", "from": "ui-components", "to": "firebase-adapter", "label": "explicit sync actions", "fromSide": "bottom", "toSide": "top", "variant": "dashed" },
+    { "id": "firebase-to-services", "from": "firebase-adapter", "to": "firebase-services", "label": "authenticated Firestore I/O", "fromSide": "bottom", "toSide": "left", "variant": "dashed" },
+    { "id": "app-to-assets", "from": "app-router", "to": "pwa-assets", "label": "registers worker / serves assets", "fromSide": "top", "toSide": "right", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Hot path", "items": ["The UI calls pure browser-side conversion helpers.", "The codec adapter wraps the official TOON package.", "Round-trip verification runs before success is reported."] },
+    { "dot": "emerald", "title": "Local persistence", "items": ["Projects: IndexedDB via the idb library.", "Usage metrics: localStorage.", "No account is required for local conversion."] },
+    { "dot": "violet", "title": "Optional cloud path", "items": ["Firebase configuration is read from public NEXT_PUBLIC_FIREBASE_* variables.", "Project sync requires an authenticated user.", "Cloud and local projects merge by updatedAt."] },
+    { "dot": "amber", "title": "Offline support", "items": ["The production app registers a service worker.", "Successful GET responses are cached for reuse.", "Static assets and the worker are served from public/."] }
+  ]
+}

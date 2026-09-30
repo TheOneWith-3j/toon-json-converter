@@ -44,6 +44,24 @@ TOONWORKS is a browser-based workspace for converting JSON and [TOON](https://gi
 
 Conversions run in the browser. Conversion contents are not sent to site analytics. See the [privacy policy](https://toon-json-converter.vercel.app/privacy/) for storage and optional-sync details.
 
+## Geeky internals
+
+The UI is composed in `src/app` and `src/components`. The conversion pipeline
+runs client-side: `src/core` detects and validates the input, applies optional
+transforms, then `src/core/codec/toon.ts` delegates encoding and decoding to the
+official `@toon-format/toon` package. The converter also infers a schema and
+checks round-trip behavior.
+
+- Project files are stored in browser IndexedDB by `src/storage/indexeddb`.
+- Usage counters are stored separately in browser localStorage by `src/metrics`.
+- Optional project sync is implemented in `src/firebase` with Firebase Auth and
+  Firestore; cloud access requires configuration and sign-in.
+- In production, the app registers `public/service-worker.js`, which caches
+  successful GET responses for offline reuse.
+
+Explore the [interactive repository architecture](https://toon-json-converter.vercel.app/repository-architecture.html),
+or inspect its [source specification](.archify/architecture-repository-details-20260930-142847/candidate.json).
+
 ## Try it
 
 - [JSON to TOON converter](https://toon-json-converter.vercel.app/json-to-toon/)
