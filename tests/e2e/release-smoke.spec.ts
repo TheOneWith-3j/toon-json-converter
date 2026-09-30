@@ -92,6 +92,55 @@ test("uses editor tabs at tablet widths", async ({ page }) => {
     .toBe(true);
 });
 
+test("serves indexable guide and policy pages", async ({ page }) => {
+  const routes = [
+    ["/examples", "See how JSON becomes TOON"],
+    ["/json-to-toon", "Convert JSON to TOON"],
+    ["/toon-to-json", "Convert TOON to JSON"],
+    ["/toon-vs-json", "TOON vs JSON: when to use each format"],
+    ["/privacy", "Your data stays yours"],
+    ["/contact", "Help improve the converter"],
+  ] as const;
+
+  for (const [route, heading] of routes) {
+    await page.goto(route);
+    await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      new RegExp(`${route}/?$`),
+    );
+  }
+});
+
+test("contact form prepares a public feedback issue", async ({ page }) => {
+  await page.goto("/contact");
+  await page.getByLabel("What can we help with?").selectOption("Bug report");
+  await page.getByLabel("Subject").fill("Example page issue");
+  await page.getByLabel("Message").fill("The sample output should be clearer.");
+  await page.getByRole("button", { name: "Prepare message" }).click();
+
+  const submitLink = page.getByRole("link", { name: "Continue to GitHub to submit" });
+  await expect(submitLink).toBeVisible();
+  await expect(submitLink).toHaveAttribute("href", /issues\/new\?title=/);
+});
+
+test("keeps the selected theme across content-page navigation", async ({ page }) => {
+  await page.getByRole("button", { name: "Toggle color theme" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.goto("/privacy");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.getByRole("button", { name: "Toggle color theme" })).toContainText("Light");
+
+  await page.getByRole("button", { name: "Toggle color theme" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page
+    .getByRole("navigation", { name: "Main navigation" })
+    .getByRole("link", { name: "Examples" })
+    .click();
+  await expect(page).toHaveURL(/\/examples\/?$/);
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+});
+
 test("typing a full multi-line JSON document lands character-for-character", async ({
   page,
   isMobile,

@@ -7,6 +7,7 @@ import { validateInput, type ValidationResult } from "../core/validate";
 import { getBatchFileName, getBatchOutputName } from "../core/batch/batch";
 import { encodeToon, decodeToon } from "../core/codec/toon";
 import { getLineDiff } from "../core/diff/diff";
+import { conversionExamples } from "../core/examples";
 import { inferSchema, type SchemaNode } from "../core/schema/inferSchema";
 import {
   applyTransforms,
@@ -59,12 +60,12 @@ type BatchResult = {
   error?: string;
 };
 
-const presets: Record<string, string> = {
-  "User record": '{"id":42,"name":"Ada Lovelace","active":true}',
-  "Inventory list": '{"items":[{"sku":"A-1","qty":12},{"sku":"B-2","qty":4}]}',
-  "Event payload":
-    '{"event":"checkout.completed","timestamp":"2026-09-14T12:00:00Z","total":99.5}',
-};
+const presets: Record<string, string> = Object.fromEntries(
+  conversionExamples.map((example) => [
+    example.name,
+    JSON.stringify(example.json),
+  ]),
+);
 
 function IconBolt() {
   return (
