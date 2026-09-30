@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import ConverterPane from "../components/ConverterPane";
+import SiteFooter from "../components/SiteFooter";
+import { useTheme } from "../components/ThemeProvider";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://toon-json-converter.vercel.app";
@@ -70,26 +71,7 @@ const faqStructuredData = {
 };
 
 export default function HomePage() {
-  const [dark, setDark] = useState(false);
-
-  useEffect(() => {
-    queueMicrotask(() => {
-      const savedTheme = localStorage.getItem("toon-theme") === "dark";
-      setDark(savedTheme);
-      document.documentElement.dataset.theme = savedTheme ? "dark" : "light";
-    });
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = dark ? "dark" : "light";
-  }, [dark]);
-
-  function toggleTheme() {
-    const next = !dark;
-    setDark(next);
-    localStorage.setItem("toon-theme", next ? "dark" : "light");
-    document.documentElement.dataset.theme = next ? "dark" : "light";
-  }
+  const { dark, toggleTheme } = useTheme();
 
   return (
     <main className="app-shell">
@@ -273,24 +255,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      <footer className="app-footer">
-        <span>© 2026 TOONWORKS. Local-first by default.</span>
-        <div className="footer-links">
-          <a href="/json-to-toon">JSON to TOON</a>
-          <a href="/toon-to-json">TOON to JSON</a>
-          <a href="/toon-vs-json">TOON vs JSON</a>
-          <a href="/examples">Examples</a>
-          <a href="/contact">Contact</a>
-          <a
-            href="https://github.com/TheOneWith-3j/toon-json-converter"
-            target="_blank"
-            rel="noreferrer"
-          >
-            GitHub
-          </a>
-          <a href="/privacy">Privacy</a>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

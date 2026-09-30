@@ -1,6 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import SiteFooter from "./SiteFooter";
+import { useTheme } from "./ThemeProvider";
 
 export default function ContentPageShell({
   eyebrow,
@@ -13,6 +17,8 @@ export default function ContentPageShell({
   description: string;
   children: ReactNode;
 }) {
+  const { dark, toggleTheme } = useTheme();
+
   return (
     <main className="app-shell min-h-screen">
       <header className="app-header">
@@ -52,6 +58,14 @@ export default function ContentPageShell({
           >
             Contact
           </Link>
+          <button
+            onClick={toggleTheme}
+            aria-label="Toggle color theme"
+            className="theme-toggle"
+          >
+            <span aria-hidden="true">{dark ? "☼" : "◐"}</span>
+            {dark ? "Light" : "Dark"}
+          </button>
           <Link
             href="/"
             className="rounded-lg bg-[var(--foreground)] px-4 py-2 text-xs font-semibold text-[var(--background)]"
@@ -70,14 +84,7 @@ export default function ContentPageShell({
         </p>
         <div className="mt-9">{children}</div>
       </section>
-      <footer className="app-footer">
-        <span>TOONWORKS · Local-first by default.</span>
-        <div className="footer-links">
-          <Link href="/examples">Examples</Link>
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/contact">Contact</Link>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

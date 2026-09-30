@@ -124,6 +124,23 @@ test("contact form prepares a public feedback issue", async ({ page }) => {
   await expect(submitLink).toHaveAttribute("href", /issues\/new\?title=/);
 });
 
+test("keeps the selected theme across content-page navigation", async ({ page }) => {
+  await page.getByRole("button", { name: "Toggle color theme" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.goto("/privacy");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.getByRole("button", { name: "Toggle color theme" })).toContainText("Light");
+
+  await page.getByRole("button", { name: "Toggle color theme" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page
+    .getByRole("navigation", { name: "Main navigation" })
+    .getByRole("link", { name: "Examples" })
+    .click();
+  await expect(page).toHaveURL(/\/examples\/?$/);
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+});
+
 test("typing a full multi-line JSON document lands character-for-character", async ({
   page,
   isMobile,
